@@ -614,12 +614,11 @@
           Math.round(noteCenterX - boxSize / 2) + "px";
 
         /*
-          The boxes are lower than in the previous version.
-          This places them closer to the notes while keeping
-          them above the staff.
+          The bottom of each box is approximately 10 pixels
+          above the top line of its matching staff.
         */
         box.style.top =
-          32 + row * 135 + "px";
+          24 + row * 135 + "px";
       }
     }
 
