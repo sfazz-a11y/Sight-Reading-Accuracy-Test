@@ -160,9 +160,11 @@
       font-size:.75rem;
     }
 
-    .exercise-description {
+    .exercise-description,
+    .graph-explanation,
+    .help-text {
       color:#555;
-      font-size:.82rem;
+      font-size:.8rem;
     }
 
     #notation {
@@ -274,12 +276,6 @@
       font-weight:bold;
     }
 
-    .graph-explanation {
-      margin:8px 0 4px;
-      color:#555;
-      font-size:.78rem;
-    }
-
     canvas {
       display:block;
       width:100%;
@@ -288,12 +284,6 @@
       border:1px solid var(--border);
       border-radius:7px;
       background:#0d1b2a;
-    }
-
-    .help-text {
-      margin-bottom:0;
-      color:#555;
-      font-size:.78rem;
     }
 
     @media(max-width:760px) {
@@ -342,13 +332,33 @@
         <h2>Controls</h2>
 
         <div class="controls">
-          <button id="startButton">Start Microphone</button>
-          <button id="stopButton" disabled>Stop</button>
-          <button id="demoButton">Start Demo Mode</button>
-          <button id="newMelodyButton">New Melody</button>
-          <button id="playMelodyButton">Play Melody</button>
-          <button id="playTargetButton">Play Target Tone</button>
-          <button id="clearButton">Clear Pitch Map</button>
+          <button id="startButton">
+            Start Microphone
+          </button>
+
+          <button id="stopButton" disabled>
+            Stop
+          </button>
+
+          <button id="demoButton">
+            Start Demo Mode
+          </button>
+
+          <button id="newMelodyButton">
+            New Melody
+          </button>
+
+          <button id="playMelodyButton">
+            Play Melody
+          </button>
+
+          <button id="playTargetButton">
+            Play Target Tone
+          </button>
+
+          <button id="clearButton">
+            Clear Pitch Map
+          </button>
 
           <div id="status" class="status" role="status" aria-live="polite">
             Use Demo Mode to test the exercise.
@@ -431,16 +441,16 @@
     const VF = window.VexFlow;
 
     const PITCHES = [
-      { frequency:261.63, key:'c/4' },
-      { frequency:293.66, key:'d/4' },
-      { frequency:329.63, key:'e/4' },
-      { frequency:349.23, key:'f/4' },
-      { frequency:392.00, key:'g/4' },
-      { frequency:440.00, key:'a/4' },
-      { frequency:493.88, key:'b/4' },
-      { frequency:523.25, key:'c/5' },
-      { frequency:587.33, key:'d/5' },
-      { frequency:659.25, key:'e/5' }
+      {frequency:261.63, key:'c/4'},
+      {frequency:293.66, key:'d/4'},
+      {frequency:329.63, key:'e/4'},
+      {frequency:349.23, key:'f/4'},
+      {frequency:392.00, key:'g/4'},
+      {frequency:440.00, key:'a/4'},
+      {frequency:493.88, key:'b/4'},
+      {frequency:523.25, key:'c/5'},
+      {frequency:587.33, key:'d/5'},
+      {frequency:659.25, key:'e/5'}
     ];
 
     const NOTE_COUNT = 32;
@@ -469,7 +479,7 @@
       let pitchIndex = 0;
 
       for (let i = 0; i < NOTE_COUNT; i++) {
-        const choices = [-2,-1,1,2]
+        const choices = [-2, -1, 1, 2]
           .map(step => pitchIndex + step)
           .filter(index =>
             index >= 0 &&
@@ -756,31 +766,48 @@
 
       rms = Math.sqrt(rms / buffer.length);
 
-      if (rms < .01) {
+      if (rms < 0.005) {
         return -1;
       }
+
+      const minOffset =
+        Math.floor(sampleRate / 1000);
+
+      const maxOffset =
+        Math.floor(sampleRate / 70);
 
       let bestOffset = -1;
       let bestCorrelation = 0;
 
       for (
-        let offset = 8;
-        offset < buffer.length / 2;
+        let offset = minOffset;
+        offset <= maxOffset;
         offset++
       ) {
-        let correlation = 0;
+        let sum = 0;
+        let sumA = 0;
+        let sumB = 0;
 
         for (
           let i = 0;
-          i < buffer.length / 2;
+          i < buffer.length - offset;
           i++
         ) {
-          correlation +=
-            buffer[i] *
-            buffer[i + offset];
+          const a = buffer[i];
+          const b = buffer[i + offset];
+
+          sum += a * b;
+          sumA += a * a;
+          sumB += b * b;
         }
 
-        correlation /= buffer.length / 2;
+        const denominator =
+          Math.sqrt(sumA * sumB);
+
+        const correlation =
+          denominator > 0
+            ? sum / denominator
+            : 0;
 
         if (correlation > bestCorrelation) {
           bestCorrelation = correlation;
@@ -789,7 +816,7 @@
       }
 
       return bestOffset > 0 &&
-        bestCorrelation > .01
+        bestCorrelation > 0.20
         ? sampleRate / bestOffset
         : -1;
     }
@@ -811,7 +838,7 @@
         );
 
       if (
-        frequency > 100 &&
+        frequency > 70 &&
         frequency < 1000 &&
         melody[currentNote]
       ) {
@@ -826,9 +853,19 @@
     }
 
     async function startMicrophone() {
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+      ) {
+        throw new Error(
+          'Microphone access is not supported.'
+        );
+      }
+
       microphoneStream =
         await navigator.mediaDevices.getUserMedia({
           audio:{
+            channelCount:1,
             echoCancellation:false,
             autoGainControl:false,
             noiseSuppression:false
@@ -846,7 +883,8 @@
       analyser =
         audioContext.createAnalyser();
 
-      analyser.fftSize = 2048;
+      analyser.fftSize = 4096;
+      analyser.smoothingTimeConstant = 0;
 
       microphoneSource =
         audioContext.createMediaStreamSource(
@@ -854,6 +892,11 @@
         );
 
       microphoneSource.connect(analyser);
+
+      setStatus(
+        'Microphone active. Sing the highlighted note.',
+        'success'
+      );
 
       microphoneLoop();
     }
@@ -881,12 +924,6 @@
         );
 
         startMicrophone()
-          .then(() => {
-            setStatus(
-              'Microphone active. Sing each highlighted note.',
-              'success'
-            );
-          })
           .catch(() => {
             setStatus(
               'Microphone access was unavailable. Demo Mode is still available.',
