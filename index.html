@@ -123,7 +123,7 @@
     }
 
     #newMelodyButton,
-    #clearButton {
+    #clearResultsButton {
       background:#687785;
     }
 
@@ -161,19 +161,67 @@
     }
 
     .exercise-description,
-    .graph-explanation,
-    .help-text {
+    .feedback-description {
       color:#555;
       font-size:.8rem;
     }
 
-    #notation {
+    .notation-stage {
+      position:relative;
       width:100%;
-      height:250px;
+      height:275px;
       overflow:hidden;
       border:1px solid var(--border);
       border-radius:7px;
       background:#fff;
+    }
+
+    #notation {
+      position:absolute;
+      inset:25px 0 0;
+      width:100%;
+      height:250px;
+      overflow:hidden;
+    }
+
+    .result-boxes {
+      position:absolute;
+      top:0;
+      left:125px;
+      right:20px;
+      z-index:2;
+      display:grid;
+      grid-template-columns:repeat(16,1fr);
+      grid-template-rows:repeat(2,105px);
+      pointer-events:none;
+    }
+
+    .result-box {
+      justify-self:center;
+      align-self:start;
+      width:22px;
+      height:22px;
+      margin-top:2px;
+      border:2px solid #b7c0c7;
+      border-radius:4px;
+      background:#fff;
+      color:transparent;
+      font-size:16px;
+      font-weight:bold;
+      line-height:18px;
+      text-align:center;
+    }
+
+    .result-box.correct {
+      border-color:var(--green);
+      background:#edf5ef;
+      color:var(--green);
+    }
+
+    .result-box.incorrect {
+      border-color:var(--red);
+      background:#fbecef;
+      color:var(--red);
     }
 
     .tuner-layout {
@@ -276,16 +324,6 @@
       font-weight:bold;
     }
 
-    canvas {
-      display:block;
-      width:100%;
-      height:160px;
-      margin-top:6px;
-      border:1px solid var(--border);
-      border-radius:7px;
-      background:#0d1b2a;
-    }
-
     @media(max-width:760px) {
       .main-layout {
         grid-template-columns:1fr;
@@ -332,13 +370,33 @@
         <h2>Controls</h2>
 
         <div class="controls">
-          <button id="startButton">Start Microphone</button>
-          <button id="stopButton" disabled>Stop</button>
-          <button id="demoButton">Start Demo Mode</button>
-          <button id="newMelodyButton">New Melody</button>
-          <button id="playMelodyButton">Play Melody</button>
-          <button id="playTargetButton">Play Target Tone</button>
-          <button id="clearButton">Clear Pitch Map</button>
+          <button id="startButton">
+            Start Microphone
+          </button>
+
+          <button id="stopButton" disabled>
+            Stop
+          </button>
+
+          <button id="demoButton">
+            Start Demo Mode
+          </button>
+
+          <button id="newMelodyButton">
+            New Melody
+          </button>
+
+          <button id="playMelodyButton">
+            Play Melody
+          </button>
+
+          <button id="playTargetButton">
+            Play Target Tone
+          </button>
+
+          <button id="clearResultsButton">
+            Clear Results
+          </button>
 
           <div id="status" class="status" role="status" aria-live="polite">
             Use Demo Mode to test the exercise.
@@ -357,16 +415,24 @@
 
           <p class="exercise-description">
             Eight measures of quarter notes from C4 through E5.
-            Every measure contains exactly four beats.
+            Each box above a note shows whether that note was sung correctly.
           </p>
 
-          <div id="notation"
-            aria-label="Eight-measure treble clef sight-reading exercise">
+          <div class="notation-stage">
+            <div id="resultBoxes" class="result-boxes"></div>
+            <div id="notation"
+              aria-label="Eight-measure treble clef sight-reading exercise">
+            </div>
           </div>
         </section>
 
         <section class="panel">
           <h2>Pitch Feedback</h2>
+
+          <p class="feedback-description">
+            The starting pitch plays first, followed by four unpitched
+            count-in clicks. Sing each highlighted note after the count-in.
+          </p>
 
           <div class="tuner-layout">
             <div class="tuner-area">
@@ -400,18 +466,6 @@
               </span>
             </div>
           </div>
-
-          <p class="graph-explanation">
-            The pitch map shows your pitch compared with the active note.
-          </p>
-
-          <canvas id="pitchCanvas"
-            aria-label="Visual pitch history map">
-          </canvas>
-
-          <p class="help-text">
-            Centered means the detected pitch is within ±30 cents.
-          </p>
         </section>
       </div>
     </div>
@@ -421,33 +475,39 @@
     const VF = window.VexFlow;
 
     const PITCHES = [
-      { frequency:261.63, key:'c/4' },
-      { frequency:293.66, key:'d/4' },
-      { frequency:329.63, key:'e/4' },
-      { frequency:349.23, key:'f/4' },
-      { frequency:392.00, key:'g/4' },
-      { frequency:440.00, key:'a/4' },
-      { frequency:493.88, key:'b/4' },
-      { frequency:523.25, key:'c/5' },
-      { frequency:587.33, key:'d/5' },
-      { frequency:659.25, key:'e/5' }
+      {frequency:261.63, key:'c/4'},
+      {frequency:293.66, key:'d/4'},
+      {frequency:329.63, key:'e/4'},
+      {frequency:349.23, key:'f/4'},
+      {frequency:392.00, key:'g/4'},
+      {frequency:440.00, key:'a/4'},
+      {frequency:493.88, key:'b/4'},
+      {frequency:523.25, key:'c/5'},
+      {frequency:587.33, key:'d/5'},
+      {frequency:659.25, key:'e/5'}
     ];
 
     const NOTE_COUNT = 32;
     const NOTE_TIME = 700;
     const PITCH_TOLERANCE = 30;
+    const COUNT_IN_TIME = 700;
 
     let melody = [];
     let currentNote = -1;
-    let pitchMap = [];
+    let noteSamples = [];
+    let noteResults = [];
+
     let practiceTimer = null;
+    let countInTimer = null;
     let microphoneFrame = null;
+
     let microphoneStream = null;
     let microphoneSource = null;
     let analyser = null;
     let audioContext = null;
     let toneContext = null;
     let silentGain = null;
+
     let running = false;
     let mode = 'demo';
     let fontsReady = false;
@@ -456,11 +516,16 @@
 
     function generateMelody() {
       melody = [];
+      noteResults = Array(NOTE_COUNT).fill(null);
+      noteSamples = Array.from(
+        {length:NOTE_COUNT},
+        () => []
+      );
 
       let pitchIndex = 0;
 
       for (let i = 0; i < NOTE_COUNT; i++) {
-        const choices = [-2, -1, 1, 2]
+        const choices = [-2,-1,1,2]
           .map(step => pitchIndex + step)
           .filter(index =>
             index >= 0 &&
@@ -480,7 +545,30 @@
       }
 
       currentNote = -1;
-      pitchMap = [];
+    }
+
+    function updateResultBoxes() {
+      const container = $('resultBoxes');
+
+      container.innerHTML = '';
+
+      for (let i = 0; i < NOTE_COUNT; i++) {
+        const box = document.createElement('div');
+
+        box.className = 'result-box';
+
+        if (noteResults[i] === true) {
+          box.classList.add('correct');
+          box.textContent = '✓';
+        }
+
+        if (noteResults[i] === false) {
+          box.classList.add('incorrect');
+          box.textContent = '×';
+        }
+
+        container.appendChild(box);
+      }
     }
 
     function renderNotation() {
@@ -489,6 +577,7 @@
       }
 
       const container = $('notation');
+
       container.innerHTML = '';
 
       try {
@@ -507,28 +596,39 @@
         const leftMargin = 20;
         const rightMargin = 20;
         const headerWidth = 105;
-        const measureStart = leftMargin + headerWidth;
+        const measureStart =
+          leftMargin + headerWidth;
 
         const measureWidth =
           (width - measureStart - rightMargin) / 4;
 
         for (let measure = 0; measure < 8; measure++) {
-          const row = Math.floor(measure / 4);
-          const column = measure % 4;
-          const y = 18 + row * 105;
+          const row =
+            Math.floor(measure / 4);
+
+          const column =
+            measure % 4;
+
+          const y =
+            18 + row * 105;
 
           if (measure === 0) {
-            const headerStave = new VF.Stave(
-              leftMargin,
-              y,
-              headerWidth
-            );
+            const headerStave =
+              new VF.Stave(
+                leftMargin,
+                y,
+                headerWidth
+              );
 
             headerStave
               .addClef('treble')
               .addTimeSignature('4/4')
-              .setBegBarType(VF.BarlineType.NONE)
-              .setEndBarType(VF.BarlineType.NONE)
+              .setBegBarType(
+                VF.BarlineType.NONE
+              )
+              .setEndBarType(
+                VF.BarlineType.NONE
+              )
               .setContext(context)
               .draw();
           }
@@ -537,11 +637,12 @@
             measureStart +
             column * measureWidth;
 
-          const stave = new VF.Stave(
-            x,
-            y,
-            measureWidth
-          );
+          const stave =
+            new VF.Stave(
+              x,
+              y,
+              measureWidth
+            );
 
           if (measure === 7) {
             stave.setEndBarType(
@@ -583,10 +684,11 @@
               return renderedNote;
             });
 
-          const voice = new VF.Voice({
-            numBeats:4,
-            beatValue:4
-          });
+          const voice =
+            new VF.Voice({
+              numBeats:4,
+              beatValue:4
+            });
 
           voice.addTickables(notes);
 
@@ -605,11 +707,14 @@
         container.textContent =
           'The music notation could not be loaded.';
       }
+
+      updateResultBoxes();
     }
 
     function setStatus(message, type = '') {
       $('status').textContent = message;
-      $('status').className = 'status ' + type;
+      $('status').className =
+        'status ' + type;
     }
 
     function getToneContext() {
@@ -624,8 +729,13 @@
       return toneContext;
     }
 
-    function playTone(frequency, duration = .6) {
-      const context = getToneContext();
+    function playFrequency(
+      frequency,
+      duration = .8
+    ) {
+      const context =
+        getToneContext();
+
       context.resume();
 
       const oscillator =
@@ -635,7 +745,8 @@
         context.createGain();
 
       oscillator.type = 'triangle';
-      oscillator.frequency.value = frequency;
+      oscillator.frequency.value =
+        frequency;
 
       gain.gain.setValueAtTime(
         .0001,
@@ -658,14 +769,93 @@
 
       oscillator.start();
       oscillator.stop(
-        context.currentTime + duration + .05
+        context.currentTime +
+        duration +
+        .05
+      );
+    }
+
+    function playStartingPitch() {
+      const note =
+        melody[0];
+
+      playFrequency(
+        note.frequency,
+        1.1
+      );
+    }
+
+    function playClick(accent = false) {
+      const context =
+        getToneContext();
+
+      context.resume();
+
+      const buffer =
+        context.createBuffer(
+          1,
+          Math.floor(context.sampleRate * .06),
+          context.sampleRate
+        );
+
+      const data =
+        buffer.getChannelData(0);
+
+      for (let i = 0; i < data.length; i++) {
+        data[i] =
+          (Math.random() * 2 - 1) *
+          Math.exp(
+            -i / (data.length * .12)
+          );
+      }
+
+      const source =
+        context.createBufferSource();
+
+      const filter =
+        context.createBiquadFilter();
+
+      const gain =
+        context.createGain();
+
+      source.buffer = buffer;
+
+      filter.type = 'highpass';
+      filter.frequency.value = 1600;
+
+      gain.gain.setValueAtTime(
+        .0001,
+        context.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        accent ? .22 : .14,
+        context.currentTime + .005
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .0001,
+        context.currentTime + .08
+      );
+
+      source
+        .connect(filter)
+        .connect(gain)
+        .connect(context.destination);
+
+      source.start();
+      source.stop(
+        context.currentTime + .1
       );
     }
 
     function playMelody() {
       melody.forEach((note, index) => {
         setTimeout(
-          () => playTone(note.frequency, .5),
+          () => playFrequency(
+            note.frequency,
+            .5
+          ),
           index * 600
         );
       });
@@ -678,9 +868,16 @@
 
     function playTargetTone() {
       const note =
-        melody[currentNote >= 0 ? currentNote : 0];
+        melody[
+          currentNote >= 0
+            ? currentNote
+            : 0
+        ];
 
-      playTone(note.frequency, .9);
+      playFrequency(
+        note.frequency,
+        .9
+      );
 
       setStatus(
         'Playing the target tone.',
@@ -695,11 +892,13 @@
       const offset =
         1200 *
         Math.log2(
-          detectedFrequency / targetFrequency
+          detectedFrequency /
+          targetFrequency
         );
 
       const centered =
-        Math.abs(offset) <= PITCH_TOLERANCE;
+        Math.abs(offset) <=
+        PITCH_TOLERANCE;
 
       $('feedback').textContent =
         centered
@@ -709,8 +908,10 @@
             : 'Sharp';
 
       const angle =
-        Math.max(-100, Math.min(100, offset)) *
-        .45;
+        Math.max(
+          -100,
+          Math.min(100, offset)
+        ) * .45;
 
       $('tunerNeedle').style.transform =
         'translateX(-50%) rotate(' +
@@ -724,17 +925,22 @@
             ? '#b77334'
             : '#88293a';
 
-      pitchMap.push(offset);
-
-      if (pitchMap.length > 180) {
-        pitchMap.shift();
+      if (
+        currentNote >= 0 &&
+        currentNote < NOTE_COUNT
+      ) {
+        noteSamples[currentNote].push(
+          offset
+        );
       }
-
-      drawPitchMap();
     }
 
-    function autoCorrelate(buffer, sampleRate) {
-      const size = buffer.length;
+    function autoCorrelate(
+      buffer,
+      sampleRate
+    ) {
+      const size =
+        buffer.length;
 
       let mean = 0;
 
@@ -761,7 +967,7 @@
       rms =
         Math.sqrt(rms / size);
 
-      if (rms < 0.002) {
+      if (rms < .002) {
         return -1;
       }
 
@@ -788,8 +994,11 @@
           i < size - offset;
           i++
         ) {
-          const a = normalized[i];
-          const b = normalized[i + offset];
+          const a =
+            normalized[i];
+
+          const b =
+            normalized[i + offset];
 
           correlation += a * b;
           energyA += a * a;
@@ -797,7 +1006,9 @@
         }
 
         const denominator =
-          Math.sqrt(energyA * energyB);
+          Math.sqrt(
+            energyA * energyB
+          );
 
         const normalizedCorrelation =
           denominator > 0
@@ -816,7 +1027,7 @@
       }
 
       return bestOffset > 0 &&
-        bestCorrelation > 0.08
+        bestCorrelation > .08
         ? sampleRate / bestOffset
         : -1;
     }
@@ -827,9 +1038,13 @@
       }
 
       const buffer =
-        new Float32Array(analyser.fftSize);
+        new Float32Array(
+          analyser.fftSize
+        );
 
-      analyser.getFloatTimeDomainData(buffer);
+      analyser.getFloatTimeDomainData(
+        buffer
+      );
 
       const frequency =
         autoCorrelate(
@@ -849,10 +1064,12 @@
       }
 
       microphoneFrame =
-        requestAnimationFrame(microphoneLoop);
+        requestAnimationFrame(
+          microphoneLoop
+        );
     }
 
-    async function startMicrophone() {
+    async function prepareMicrophone() {
       if (
         !navigator.mediaDevices ||
         !navigator.mediaDevices.getUserMedia
@@ -891,10 +1108,12 @@
           microphoneStream
         );
 
-      microphoneSource.connect(analyser);
+      microphoneSource.connect(
+        analyser
+      );
 
       /*
-        Keep the audio graph active without
+        Keeps the audio graph active without
         playing the microphone back to the singer.
       */
       silentGain =
@@ -905,54 +1124,47 @@
       analyser
         .connect(silentGain)
         .connect(audioContext.destination);
-
-      setStatus(
-        'Microphone active. Sing the highlighted note.',
-        'success'
-      );
-
-      microphoneLoop();
     }
 
-    function startPractice() {
-      if (running) {
+    function finalizeNote(noteIndex) {
+      if (
+        noteIndex < 0 ||
+        noteIndex >= NOTE_COUNT
+      ) {
         return;
       }
 
-      running = true;
-      currentNote = 0;
-      pitchMap = [];
+      const samples =
+        noteSamples[noteIndex];
 
-      $('startButton').disabled = true;
-      $('demoButton').disabled = true;
-      $('newMelodyButton').disabled = true;
-      $('stopButton').disabled = false;
-
-      renderNotation();
-      drawPitchMap();
-
-      if (mode === 'microphone') {
-        setStatus(
-          'Requesting microphone permission...'
-        );
-
-        startMicrophone()
-          .catch(() => {
-            setStatus(
-              'Microphone access was unavailable. Demo Mode is still available.',
-              'error'
-            );
-
-            stopPractice();
-          });
+      if (!samples || !samples.length) {
+        noteResults[noteIndex] = false;
       } else {
-        setStatus(
-          'Demo Mode is running.',
-          'success'
-        );
+        const average =
+          samples.reduce(
+            (total, value) =>
+              total + Math.abs(value),
+            0
+          ) / samples.length;
+
+        noteResults[noteIndex] =
+          average <= PITCH_TOLERANCE;
       }
 
-      let step = 0;
+      updateResultBoxes();
+    }
+
+    function beginActivePractice() {
+      setStatus(
+        'Sing the highlighted notes.',
+        'success'
+      );
+
+      if (mode === 'microphone') {
+        microphoneLoop();
+      }
+
+      let demoStep = 0;
 
       practiceTimer =
         setInterval(() => {
@@ -960,13 +1172,22 @@
             mode === 'demo' &&
             melody[currentNote]
           ) {
-            const offsets = [
-              -18,-8,4,12,
-              24,-10,6,-4
+            const demoOffsets = [
+              -18,
+              -8,
+              4,
+              12,
+              24,
+              -10,
+              6,
+              -4
             ];
 
             const offset =
-              offsets[step % offsets.length];
+              demoOffsets[
+                demoStep %
+                demoOffsets.length
+              ];
 
             const frequency =
               melody[currentNote].frequency *
@@ -977,14 +1198,16 @@
               melody[currentNote].frequency
             );
 
-            playTone(
+            playFrequency(
               melody[currentNote].frequency,
               .25
             );
           }
 
+          finalizeNote(currentNote);
+
           currentNote++;
-          step++;
+          demoStep++;
 
           renderNotation();
 
@@ -992,27 +1215,121 @@
             stopPractice();
 
             setStatus(
-              'Practice complete. Review the tuner and pitch map.',
+              'Practice complete. Review the check marks and X marks.',
               'success'
             );
           }
         }, NOTE_TIME);
     }
 
+    function startPractice() {
+      if (running) {
+        return;
+      }
+
+      running = true;
+      currentNote = 0;
+
+      noteResults =
+        Array(NOTE_COUNT).fill(null);
+
+      noteSamples =
+        Array.from(
+          {length:NOTE_COUNT},
+          () => []
+        );
+
+      $('startButton').disabled = true;
+      $('demoButton').disabled = true;
+      $('newMelodyButton').disabled = true;
+      $('stopButton').disabled = false;
+
+      updateResultBoxes();
+      renderNotation();
+
+      let microphonePromise =
+        Promise.resolve();
+
+      if (mode === 'microphone') {
+        microphonePromise =
+          prepareMicrophone();
+      }
+
+      setStatus(
+        'Playing the starting pitch.',
+        'success'
+      );
+
+      playStartingPitch();
+
+      window.setTimeout(() => {
+        let beat = 0;
+
+        setStatus(
+          'Count-in: 1',
+          'success'
+        );
+
+        playClick(true);
+        beat++;
+
+        countInTimer =
+          setInterval(() => {
+            playClick(beat === 0);
+
+            if (beat < 4) {
+              setStatus(
+                'Count-in: ' + (beat + 1),
+                'success'
+              );
+            }
+
+            beat++;
+
+            if (beat >= 4) {
+              clearInterval(countInTimer);
+              countInTimer = null;
+
+              microphonePromise
+                .then(() => {
+                  beginActivePractice();
+                })
+                .catch(() => {
+                  setStatus(
+                    'Microphone access was unavailable. Demo Mode is still available.',
+                    'error'
+                  );
+
+                  stopPractice();
+                });
+            }
+          }, COUNT_IN_TIME);
+      }, 1100);
+    }
+
     function stopPractice() {
       running = false;
 
       clearInterval(practiceTimer);
+      clearInterval(countInTimer);
+
+      practiceTimer = null;
+      countInTimer = null;
 
       if (microphoneFrame) {
-        cancelAnimationFrame(microphoneFrame);
+        cancelAnimationFrame(
+          microphoneFrame
+        );
+
         microphoneFrame = null;
       }
 
       if (microphoneStream) {
         microphoneStream
           .getTracks()
-          .forEach(track => track.stop());
+          .forEach(track =>
+            track.stop()
+          );
 
         microphoneStream = null;
       }
@@ -1040,84 +1357,13 @@
       stopPractice();
       generateMelody();
       renderNotation();
-      drawPitchMap();
+      updateResultBoxes();
 
       $('feedback').textContent = '—';
 
       setStatus(
         'A new eight-measure melody is ready.'
       );
-    }
-
-    function drawPitchMap() {
-      const canvas = $('pitchCanvas');
-      const context = canvas.getContext('2d');
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      const center = height / 2;
-
-      context.clearRect(
-        0,
-        0,
-        width,
-        height
-      );
-
-      context.fillStyle = '#0d1b2a';
-
-      context.fillRect(
-        0,
-        0,
-        width,
-        height
-      );
-
-      context.strokeStyle = '#496450';
-      context.lineWidth = 2;
-      context.beginPath();
-      context.moveTo(0, center);
-      context.lineTo(width, center);
-      context.stroke();
-
-      context.strokeStyle = '#526579';
-      context.lineWidth = 1;
-
-      [height * .25, height * .75]
-        .forEach(y => {
-          context.beginPath();
-          context.moveTo(0, y);
-          context.lineTo(width, y);
-          context.stroke();
-        });
-
-      if (!pitchMap.length) {
-        return;
-      }
-
-      context.strokeStyle = '#82bee6';
-      context.lineWidth = 2.5;
-      context.beginPath();
-
-      pitchMap.forEach((offset, index) => {
-        const x =
-          index /
-          Math.max(pitchMap.length - 1, 1) *
-          width;
-
-        const y =
-          center -
-          Math.max(-100, Math.min(100, offset)) /
-          100 *
-          height / 2;
-
-        if (index === 0) {
-          context.moveTo(x, y);
-        } else {
-          context.lineTo(x, y);
-        }
-      });
-
-      context.stroke();
     }
 
     $('startButton').onclick = () => {
@@ -1130,21 +1376,40 @@
       startPractice();
     };
 
-    $('stopButton').onclick = stopPractice;
-    $('newMelodyButton').onclick = createNewMelody;
-    $('playMelodyButton').onclick = playMelody;
-    $('playTargetButton').onclick = playTargetTone;
+    $('stopButton').onclick =
+      stopPractice;
 
-    $('clearButton').onclick = () => {
-      pitchMap = [];
-      drawPitchMap();
+    $('newMelodyButton').onclick =
+      createNewMelody;
+
+    $('playMelodyButton').onclick =
+      playMelody;
+
+    $('playTargetButton').onclick =
+      playTargetTone;
+
+    $('clearResultsButton').onclick = () => {
+      noteResults =
+        Array(NOTE_COUNT).fill(null);
+
+      noteSamples =
+        Array.from(
+          {length:NOTE_COUNT},
+          () => []
+        );
+
+      updateResultBoxes();
+
       $('feedback').textContent = '—';
-      setStatus('Pitch map cleared.');
+
+      setStatus(
+        'Note results cleared.'
+      );
     };
 
     window.onresize = () => {
       renderNotation();
-      drawPitchMap();
+      updateResultBoxes();
     };
 
     async function initialize() {
@@ -1163,7 +1428,7 @@
 
         generateMelody();
         renderNotation();
-        drawPitchMap();
+        updateResultBoxes();
       } catch (error) {
         console.error(error);
 
