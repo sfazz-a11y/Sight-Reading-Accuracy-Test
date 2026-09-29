@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Choir Pitch Feedback</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/cjs/vexflow-core.js"></script>
+
+  <style>
+    :root {
+      --navy:#042f5f;
+      --blue:#82bee6;
+      --gold:#d1b43c;
+      --green:#496450;
+      --red:#88293a;
+      --orange:#b77334;
+      --border:#c9d3dc;
+    }
+
+    * {
+      box-sizing:border-box;
+    }
+
+    body {
+      margin:0;
+      background:#fff;
+      color:#333;
+      font:14px Arial,sans-serif;
+      line-height:1.4;
+    }
+
+    main {
+      width:min(1050px,100%);
+      margin:auto;
+      padding:14px 16px 24px;
+    }
+
+    h1,
+    h2 {
+      color:var(--navy);
+      line-height:1.15;
+    }
+
+    h1 {
+      margin:0 0 8px;
+      font-size:1.8rem;
+    }
+
+    h2 {
+      margin:0 0 8px;
+      font-size:1.1rem;
+    }
+
+    p {
+      margin:6px 0 8px;
+    }
+
+    .main-layout {
+      display:grid;
+      grid-template-columns:210px minmax(0,1fr);
+      gap:12px;
+      align-items:start;
+    }
+
+    .panel {
+      padding:14px;
+      margin-bottom:12px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:10px;
+      box-shadow:0 1px 4px #0000000d;
+    }
+
+    .controls-panel {
+      grid-column:1;
+      padding:12px;
+    }
+
+    .content-stack {
+      grid-column:2;
+      min-width:0;
+    }
+
+    .controls {
+      display:flex;
+      flex-direction:column;
+      gap:7px;
+    }
+
+    button {
+      width:100%;
+      min-height:36px;
+      padding:8px 10px;
+      border:0;
+      border-radius:7px;
+      color:#fff;
+      font-size:.82rem;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    button:focus {
+      outline:3px solid var(--gold);
+      outline-offset:2px;
+    }
+
+    button:disabled {
+      opacity:.5;
+      cursor:not-allowed;
+    }
+
+    #startButton {
+      background:var(--navy);
+    }
+
+    #stopButton {
+      background:var(--red);
+    }
+
+    #demoButton {
+      background:var(--orange);
+    }
+
+    #newMelodyButton,
+    #clearButton {
+      background:#687785;
+    }
+
+    #playMelodyButton,
+    #playTargetButton {
+      background:var(--green);
+    }
+
+    .status {
+      padding:8px;
+      margin-top:10px;
+      border-left:4px solid var(--blue);
+      background:#eef7fd;
+      font-size:.78rem;
+    }
+
+    .status.success {
+      border-left-color:var(--green);
+      background:#edf5ef;
+    }
+
+    .status.error {
+      border-left-color:var(--red);
+      background:#fbecef;
+    }
+
+    .demo-note {
+      padding:8px;
+      margin-top:8px;
+      border:1px solid #ead7a0;
+      border-radius:5px;
+      background:#fff9e7;
+      color:#5b4c13;
+      font-size:.75rem;
+    }
+
+    .exercise-description {
+      color:#555;
+      font-size:.82rem;
+    }
+
+    #notation {
+      width:100%;
+      height:250px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      border-radius:7px;
+      background:#fff;
+    }
+
+    .tuner-layout {
+      display:grid;
+      grid-template-columns:minmax(220px,1fr) 145px;
+      gap:18px;
+      align-items:center;
+      margin-top:8px;
+    }
+
+    .tuner-area {
+      min-width:220px;
+      text-align:center;
+    }
+
+    .tuner {
+      position:relative;
+      width:min(260px,100%);
+      height:132px;
+      margin:auto;
+      overflow:hidden;
+    }
+
+    .tuner-arc {
+      position:absolute;
+      bottom:0;
+      left:50%;
+      width:250px;
+      height:125px;
+      border-radius:250px 250px 0 0;
+      background:conic-gradient(
+        from 270deg at 50% 100%,
+        #88293a 0deg,
+        #b77334 35deg,
+        #d1b43c 55deg,
+        #496450 82deg,
+        #496450 98deg,
+        #d1b43c 125deg,
+        #b77334 145deg,
+        #88293a 180deg
+      );
+      transform:translateX(-50%);
+    }
+
+    .tuner-needle {
+      position:absolute;
+      bottom:8px;
+      left:50%;
+      z-index:2;
+      width:4px;
+      height:102px;
+      border-radius:4px;
+      background:var(--navy);
+      transform:translateX(-50%) rotate(0deg);
+      transform-origin:50% 100%;
+      transition:transform .1s linear,background .1s linear;
+    }
+
+    .tuner-center {
+      position:absolute;
+      bottom:3px;
+      left:50%;
+      z-index:3;
+      width:14px;
+      height:14px;
+      border-radius:50%;
+      background:var(--navy);
+      transform:translateX(-50%);
+    }
+
+    .tuner-labels {
+      display:flex;
+      justify-content:space-between;
+      width:min(250px,100%);
+      margin:3px auto 0;
+      color:#555;
+      font-size:.75rem;
+      font-weight:bold;
+    }
+
+    .feedback-box {
+      padding:12px 8px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:#f8fafc;
+      text-align:center;
+    }
+
+    .feedback-label {
+      display:block;
+      margin-bottom:6px;
+      color:#555;
+      font-size:.75rem;
+    }
+
+    .feedback-value {
+      display:block;
+      color:var(--navy);
+      font-size:1.25rem;
+      font-weight:bold;
+    }
+
+    .graph-explanation {
+      margin:8px 0 4px;
+      color:#555;
+      font-size:.78rem;
+    }
+
+    canvas {
+      display:block;
+      width:100%;
+      height:160px;
+      margin-top:6px;
+      border:1px solid var(--border);
+      border-radius:7px;
+      background:#0d1b2a;
+    }
+
+    .help-text {
+      margin-bottom:0;
+      color:#555;
+      font-size:.78rem;
+    }
+
+    @media(max-width:760px) {
+      .main-layout {
+        grid-template-columns:1fr;
+      }
+
+      .controls-panel,
+      .content-stack {
+        grid-column:1;
+      }
+
+      .controls-panel {
+        order:1;
+      }
+
+      .content-stack {
+        order:2;
+      }
+    }
+
+    @media(max-width:560px) {
+      .tuner-layout {
+        grid-template-columns:1fr;
+      }
+
+      .feedback-box {
+        width:145px;
+        margin:auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Choir Pitch Feedback</h1>
+
+    <p>
+      Sing the written melody one note at a time and receive
+      feedback about pitch accuracy.
+    </p>
+
+    <div class="main-layout">
+      <section class="panel controls-panel">
+        <h2>Controls</h2>
+
+        <div class="controls">
+          <button id="startButton">Start Microphone</button>
+          <button id="stopButton" disabled>Stop</button>
+          <button id="demoButton">Start Demo Mode</button>
+          <button id="newMelodyButton">New Melody</button>
+          <button id="playMelodyButton">Play Melody</button>
+          <button id="playTargetButton">Play Target Tone</button>
+          <button id="clearButton">Clear Pitch Map</button>
+
+          <div id="status" class="status" role="status" aria-live="polite">
+            Use Demo Mode to test the exercise.
+          </div>
+
+          <div class="demo-note">
+            Notes are considered accurate within ±30 cents.
+            No audio is saved.
+          </div>
+        </div>
+      </section>
+
+      <div class="content-stack">
+        <section class="panel">
+          <h2>Treble Clef Sight-Reading Exercise</h2>
+
+          <p class="exercise-description">
+            Eight measures of quarter notes from C4 through E5.
+            Every measure contains exactly four beats.
+          </p>
+
+          <div id="notation"
+            aria-label="Eight-measure treble clef sight-reading exercise">
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Pitch Feedback</h2>
+
+          <div class="tuner-layout">
+            <div class="tuner-area">
+              <div class="tuner" aria-label="Semicircular pitch tuner">
+                <div class="tuner-arc"></div>
+
+                <div id="tunerNeedle"
+                  class="tuner-needle"
+                  aria-hidden="true">
+                </div>
+
+                <div class="tuner-center" aria-hidden="true"></div>
+              </div>
+
+              <div class="tuner-labels" aria-hidden="true">
+                <span>Flat</span>
+                <span>Centered</span>
+                <span>Sharp</span>
+              </div>
+            </div>
+
+            <div class="feedback-box">
+              <span class="feedback-label">
+                Current Feedback
+              </span>
+
+              <span id="feedback"
+                class="feedback-value"
+                aria-live="polite">
+                —
+              </span>
+            </div>
+          </div>
+
+          <p class="graph-explanation">
+            The pitch map shows your pitch compared with the active note.
+          </p>
+
+          <canvas id="pitchCanvas"
+            aria-label="Visual pitch history map">
+          </canvas>
+
+          <p class="help-text">
+            Centered means the detected pitch is within ±30 cents.
+          </p>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const VF = window.VexFlow;
+
+    const PITCHES = [
+      { frequency:261.63, key:'c/4' },
+      { frequency:293.66, key:'d/4' },
+      { frequency:329.63, key:'e/4' },
+      { frequency:349.23, key:'f/4' },
+      { frequency:392.00, key:'g/4' },
+      { frequency:440.00, key:'a/4' },
+      { frequency:493.88, key:'b/4' },
+      { frequency:523.25, key:'c/5' },
+      { frequency:587.33, key:'d/5' },
+      { frequency:659.25, key:'e/5' }
+    ];
+
+    const NOTE_COUNT = 32;
+    const NOTE_TIME = 700;
+    const PITCH_TOLERANCE = 30;
+
+    let melody = [];
+    let currentNote = -1;
+    let pitchMap = [];
+    let practiceTimer = null;
+    let microphoneFrame = null;
+    let microphoneStream = null;
+    let microphoneSource = null;
+    let analyser = null;
+    let audioContext = null;
+    let toneContext = null;
+    let running = false;
+    let mode = 'demo';
+    let fontsReady = false;
+
+    const $ = id => document.getElementById(id);
+
+    function generateMelody() {
+      melody = [];
+
+      let pitchIndex = 0;
+
+      for (let i = 0; i < NOTE_COUNT; i++) {
+        const choices = [-2,-1,1,2]
+          .map(step => pitchIndex + step)
+          .filter(index =>
+            index >= 0 &&
+            index < PITCHES.length
+          );
+
+        if (i === 0) {
+          pitchIndex = 0;
+        } else {
+          pitchIndex =
+            choices[
+              Math.floor(Math.random() * choices.length)
+            ];
+        }
+
+        melody.push(PITCHES[pitchIndex]);
+      }
+
+      currentNote = -1;
+      pitchMap = [];
+    }
+
+    function renderNotation() {
+      if (!fontsReady) {
+        return;
+      }
+
+      const container = $('notation');
+      container.innerHTML = '';
+
+      try {
+        const renderer = new VF.Renderer(
+          container,
+          VF.Renderer.Backends.SVG
+        );
+
+        const width =
+          Math.max(container.clientWidth, 700);
+
+        renderer.resize(width, 250);
+
+        const context = renderer.getContext();
+
+        /*
+          The clef and time signature receive their own
+          opening area. All four measures then have
+          identical widths and note spacing.
+        */
+        const leftMargin = 20;
+        const rightMargin = 20;
+        const headerWidth = 105;
+        const measureStart = leftMargin + headerWidth;
+
+        const measureWidth =
+          (width - measureStart - rightMargin) / 4;
+
+        for (let measure = 0; measure < 8; measure++) {
+          const row = Math.floor(measure / 4);
+          const column = measure % 4;
+          const y = 18 + row * 105;
+
+          if (measure === 0) {
+            const headerStave = new VF.Stave(
+              leftMargin,
+              y,
+              headerWidth
+            );
+
+            headerStave
+              .addClef('treble')
+              .addTimeSignature('4/4')
+              .setBegBarType(VF.BarlineType.NONE)
+              .setEndBarType(VF.BarlineType.NONE)
+              .setContext(context)
+              .draw();
+          }
+
+          const x =
+            measureStart +
+            column * measureWidth;
+
+          const stave = new VF.Stave(
+            x,
+            y,
+            measureWidth
+          );
+
+          if (measure === 7) {
+            stave.setEndBarType(
+              VF.BarlineType.END
+            );
+          }
+
+          stave
+            .setContext(context)
+            .draw();
+
+          const notes = melody
+            .slice(
+              measure * 4,
+              measure * 4 + 4
+            )
+            .map((note, noteOffset) => {
+              const noteIndex =
+                measure * 4 + noteOffset;
+
+              const renderedNote =
+                new VF.StaveNote({
+                  keys:[note.key],
+                  duration:'q'
+                });
+
+              const color =
+                noteIndex === currentNote
+                  ? '#d1b43c'
+                  : noteIndex < currentNote
+                    ? '#496450'
+                    : '#000000';
+
+              renderedNote.setStyle({
+                fillStyle:color,
+                strokeStyle:color
+              });
+
+              return renderedNote;
+            });
+
+          const voice = new VF.Voice({
+            numBeats:4,
+            beatValue:4
+          });
+
+          voice.addTickables(notes);
+
+          new VF.Formatter()
+            .joinVoices([voice])
+            .format(
+              [voice],
+              measureWidth - 25
+            );
+
+          voice.draw(context, stave);
+        }
+      } catch (error) {
+        console.error(error);
+
+        container.textContent =
+          'The music notation could not be loaded.';
+      }
+    }
+
+    function setStatus(message, type = '') {
+      $('status').textContent = message;
+      $('status').className = 'status ' + type;
+    }
+
+    function getToneContext() {
+      if (!toneContext) {
+        toneContext =
+          new (
+            window.AudioContext ||
+            window.webkitAudioContext
+          )();
+      }
+
+      return toneContext;
+    }
+
+    function playTone(frequency, duration = .6) {
+      const context = getToneContext();
+      context.resume();
+
+      const oscillator =
+        context.createOscillator();
+
+      const gain =
+        context.createGain();
+
+      oscillator.type = 'triangle';
+      oscillator.frequency.value = frequency;
+
+      gain.gain.setValueAtTime(
+        .0001,
+        context.currentTime
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .16,
+        context.currentTime + .03
+      );
+
+      gain.gain.exponentialRampToValueAtTime(
+        .0001,
+        context.currentTime + duration
+      );
+
+      oscillator
+        .connect(gain)
+        .connect(context.destination);
+
+      oscillator.start();
+      oscillator.stop(
+        context.currentTime + duration + .05
+      );
+    }
+
+    function playMelody() {
+      melody.forEach((note, index) => {
+        setTimeout(
+          () => playTone(note.frequency, .5),
+          index * 600
+        );
+      });
+
+      setStatus(
+        'Playing the complete melody.',
+        'success'
+      );
+    }
+
+    function playTargetTone() {
+      const note =
+        melody[currentNote >= 0 ? currentNote : 0];
+
+      playTone(note.frequency, .9);
+
+      setStatus(
+        'Playing the target tone.',
+        'success'
+      );
+    }
+
+    function updateFeedback(
+      detectedFrequency,
+      targetFrequency
+    ) {
+      const offset =
+        1200 *
+        Math.log2(
+          detectedFrequency / targetFrequency
+        );
+
+      const centered =
+        Math.abs(offset) <= PITCH_TOLERANCE;
+
+      $('feedback').textContent =
+        centered
+          ? 'Centered'
+          : offset < 0
+            ? 'Flat'
+            : 'Sharp';
+
+      const angle =
+        Math.max(-100, Math.min(100, offset)) *
+        .45;
+
+      $('tunerNeedle').style.transform =
+        'translateX(-50%) rotate(' +
+        angle +
+        'deg)';
+
+      $('tunerNeedle').style.background =
+        centered
+          ? '#496450'
+          : offset < 0
+            ? '#b77334'
+            : '#88293a';
+
+      pitchMap.push(offset);
+
+      if (pitchMap.length > 180) {
+        pitchMap.shift();
+      }
+
+      drawPitchMap();
+    }
+
+    function autoCorrelate(buffer, sampleRate) {
+      let rms = 0;
+
+      for (let i = 0; i < buffer.length; i++) {
+        rms += buffer[i] * buffer[i];
+      }
+
+      rms = Math.sqrt(rms / buffer.length);
+
+      if (rms < .01) {
+        return -1;
+      }
+
+      let bestOffset = -1;
+      let bestCorrelation = 0;
+
+      for (
+        let offset = 8;
+        offset < buffer.length / 2;
+        offset++
+      ) {
+        let correlation = 0;
+
+        for (
+          let i = 0;
+          i < buffer.length / 2;
+          i++
+        ) {
+          correlation +=
+            buffer[i] *
+            buffer[i + offset];
+        }
+
+        correlation /= buffer.length / 2;
+
+        if (correlation > bestCorrelation) {
+          bestCorrelation = correlation;
+          bestOffset = offset;
+        }
+      }
+
+      return bestOffset > 0 &&
+        bestCorrelation > .01
+        ? sampleRate / bestOffset
+        : -1;
+    }
+
+    function microphoneLoop() {
+      if (!analyser || !audioContext) {
+        return;
+      }
+
+      const buffer =
+        new Float32Array(analyser.fftSize);
+
+      analyser.getFloatTimeDomainData(buffer);
+
+      const frequency =
+        autoCorrelate(
+          buffer,
+          audioContext.sampleRate
+        );
+
+      if (
+        frequency > 100 &&
+        frequency < 1000 &&
+        melody[currentNote]
+      ) {
+        updateFeedback(
+          frequency,
+          melody[currentNote].frequency
+        );
+      }
+
+      microphoneFrame =
+        requestAnimationFrame(microphoneLoop);
+    }
+
+    async function startMicrophone() {
+      microphoneStream =
+        await navigator.mediaDevices.getUserMedia({
+          audio:{
+            echoCancellation:false,
+            autoGainControl:false,
+            noiseSuppression:false
+          }
+        });
+
+      audioContext =
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+      await audioContext.resume();
+
+      analyser =
+        audioContext.createAnalyser();
+
+      analyser.fftSize = 2048;
+
+      microphoneSource =
+        audioContext.createMediaStreamSource(
+          microphoneStream
+        );
+
+      microphoneSource.connect(analyser);
+
+      microphoneLoop();
+    }
+
+    function startPractice() {
+      if (running) {
+        return;
+      }
+
+      running = true;
+      currentNote = 0;
+      pitchMap = [];
+
+      $('startButton').disabled = true;
+      $('demoButton').disabled = true;
+      $('newMelodyButton').disabled = true;
+      $('stopButton').disabled = false;
+
+      renderNotation();
+      drawPitchMap();
+
+      if (mode === 'microphone') {
+        setStatus(
+          'Requesting microphone permission...'
+        );
+
+        startMicrophone()
+          .then(() => {
+            setStatus(
+              'Microphone active. Sing each highlighted note.',
+              'success'
+            );
+          })
+          .catch(() => {
+            setStatus(
+              'Microphone access was unavailable. Demo Mode is still available.',
+              'error'
+            );
+
+            stopPractice();
+          });
+      } else {
+        setStatus(
+          'Demo Mode is running.',
+          'success'
+        );
+      }
+
+      let step = 0;
+
+      practiceTimer =
+        setInterval(() => {
+          if (
+            mode === 'demo' &&
+            melody[currentNote]
+          ) {
+            const offsets = [
+              -18,-8,4,12,
+              24,-10,6,-4
+            ];
+
+            const offset =
+              offsets[step % offsets.length];
+
+            const frequency =
+              melody[currentNote].frequency *
+              Math.pow(2, offset / 1200);
+
+            updateFeedback(
+              frequency,
+              melody[currentNote].frequency
+            );
+
+            playTone(
+              melody[currentNote].frequency,
+              .25
+            );
+          }
+
+          currentNote++;
+          step++;
+
+          renderNotation();
+
+          if (currentNote >= melody.length) {
+            stopPractice();
+
+            setStatus(
+              'Practice complete. Review the tuner and pitch map.',
+              'success'
+            );
+          }
+        }, NOTE_TIME);
+    }
+
+    function stopPractice() {
+      running = false;
+
+      clearInterval(practiceTimer);
+
+      if (microphoneFrame) {
+        cancelAnimationFrame(microphoneFrame);
+        microphoneFrame = null;
+      }
+
+      if (microphoneStream) {
+        microphoneStream
+          .getTracks()
+          .forEach(track => track.stop());
+
+        microphoneStream = null;
+      }
+
+      if (microphoneSource) {
+        microphoneSource.disconnect();
+        microphoneSource = null;
+      }
+
+      if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+      }
+
+      analyser = null;
+
+      $('startButton').disabled = false;
+      $('demoButton').disabled = false;
+      $('newMelodyButton').disabled = false;
+      $('stopButton').disabled = true;
+    }
+
+    function createNewMelody() {
+      stopPractice();
+      generateMelody();
+      renderNotation();
+      drawPitchMap();
+
+      $('feedback').textContent = '—';
+
+      setStatus(
+        'A new eight-measure melody is ready.'
+      );
+    }
+
+    function drawPitchMap() {
+      const canvas = $('pitchCanvas');
+      const context = canvas.getContext('2d');
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const center = height / 2;
+
+      context.clearRect(0, 0, width, height);
+
+      context.fillStyle = '#0d1b2a';
+      context.fillRect(0, 0, width, height);
+
+      context.strokeStyle = '#496450';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(0, center);
+      context.lineTo(width, center);
+      context.stroke();
+
+      context.strokeStyle = '#526579';
+      context.lineWidth = 1;
+
+      [height * .25, height * .75]
+        .forEach(y => {
+          context.beginPath();
+          context.moveTo(0, y);
+          context.lineTo(width, y);
+          context.stroke();
+        });
+
+      if (!pitchMap.length) {
+        return;
+      }
+
+      context.strokeStyle = '#82bee6';
+      context.lineWidth = 2.5;
+      context.beginPath();
+
+      pitchMap.forEach((offset, index) => {
+        const x =
+          index /
+          Math.max(pitchMap.length - 1, 1) *
+          width;
+
+        const y =
+          center -
+          Math.max(-100, Math.min(100, offset)) /
+          100 *
+          height / 2;
+
+        if (index === 0) {
+          context.moveTo(x, y);
+        } else {
+          context.lineTo(x, y);
+        }
+      });
+
+      context.stroke();
+    }
+
+    $('startButton').onclick = () => {
+      mode = 'microphone';
+      startPractice();
+    };
+
+    $('demoButton').onclick = () => {
+      mode = 'demo';
+      startPractice();
+    };
+
+    $('stopButton').onclick = stopPractice;
+    $('newMelodyButton').onclick = createNewMelody;
+    $('playMelodyButton').onclick = playMelody;
+    $('playTargetButton').onclick = playTargetTone;
+
+    $('clearButton').onclick = () => {
+      pitchMap = [];
+      drawPitchMap();
+      $('feedback').textContent = '—';
+      setStatus('Pitch map cleared.');
+    };
+
+    window.onresize = () => {
+      renderNotation();
+      drawPitchMap();
+    };
+
+    async function initialize() {
+      try {
+        await VF.loadFonts(
+          'Bravura',
+          'Academico'
+        );
+
+        VF.setFonts(
+          'Bravura',
+          'Academico'
+        );
+
+        fontsReady = true;
+
+        generateMelody();
+        renderNotation();
+        drawPitchMap();
+      } catch (error) {
+        console.error(error);
+
+        $('notation').textContent =
+          'The music notation could not be loaded.';
+      }
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
