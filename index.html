@@ -332,33 +332,13 @@
         <h2>Controls</h2>
 
         <div class="controls">
-          <button id="startButton">
-            Start Microphone
-          </button>
-
-          <button id="stopButton" disabled>
-            Stop
-          </button>
-
-          <button id="demoButton">
-            Start Demo Mode
-          </button>
-
-          <button id="newMelodyButton">
-            New Melody
-          </button>
-
-          <button id="playMelodyButton">
-            Play Melody
-          </button>
-
-          <button id="playTargetButton">
-            Play Target Tone
-          </button>
-
-          <button id="clearButton">
-            Clear Pitch Map
-          </button>
+          <button id="startButton">Start Microphone</button>
+          <button id="stopButton" disabled>Stop</button>
+          <button id="demoButton">Start Demo Mode</button>
+          <button id="newMelodyButton">New Melody</button>
+          <button id="playMelodyButton">Play Melody</button>
+          <button id="playTargetButton">Play Target Tone</button>
+          <button id="clearButton">Clear Pitch Map</button>
 
           <div id="status" class="status" role="status" aria-live="polite">
             Use Demo Mode to test the exercise.
@@ -441,16 +421,16 @@
     const VF = window.VexFlow;
 
     const PITCHES = [
-      {frequency:261.63, key:'c/4'},
-      {frequency:293.66, key:'d/4'},
-      {frequency:329.63, key:'e/4'},
-      {frequency:349.23, key:'f/4'},
-      {frequency:392.00, key:'g/4'},
-      {frequency:440.00, key:'a/4'},
-      {frequency:493.88, key:'b/4'},
-      {frequency:523.25, key:'c/5'},
-      {frequency:587.33, key:'d/5'},
-      {frequency:659.25, key:'e/5'}
+      { frequency:261.63, key:'c/4' },
+      { frequency:293.66, key:'d/4' },
+      { frequency:329.63, key:'e/4' },
+      { frequency:349.23, key:'f/4' },
+      { frequency:392.00, key:'g/4' },
+      { frequency:440.00, key:'a/4' },
+      { frequency:493.88, key:'b/4' },
+      { frequency:523.25, key:'c/5' },
+      { frequency:587.33, key:'d/5' },
+      { frequency:659.25, key:'e/5' }
     ];
 
     const NOTE_COUNT = 32;
@@ -467,6 +447,7 @@
     let analyser = null;
     let audioContext = null;
     let toneContext = null;
+    let silentGain = null;
     let running = false;
     let mode = 'demo';
     let fontsReady = false;
@@ -523,11 +504,6 @@
 
         const context = renderer.getContext();
 
-        /*
-          The clef and time signature receive their own
-          opening area. All four measures then have
-          identical widths and note spacing.
-        */
         const leftMargin = 20;
         const rightMargin = 20;
         const headerWidth = 105;
@@ -758,15 +734,34 @@
     }
 
     function autoCorrelate(buffer, sampleRate) {
-      let rms = 0;
+      const size = buffer.length;
 
-      for (let i = 0; i < buffer.length; i++) {
-        rms += buffer[i] * buffer[i];
+      let mean = 0;
+
+      for (let i = 0; i < size; i++) {
+        mean += buffer[i];
       }
 
-      rms = Math.sqrt(rms / buffer.length);
+      mean /= size;
 
-      if (rms < 0.005) {
+      const normalized =
+        new Float32Array(size);
+
+      let rms = 0;
+
+      for (let i = 0; i < size; i++) {
+        normalized[i] =
+          buffer[i] - mean;
+
+        rms +=
+          normalized[i] *
+          normalized[i];
+      }
+
+      rms =
+        Math.sqrt(rms / size);
+
+      if (rms < 0.002) {
         return -1;
       }
 
@@ -784,39 +779,44 @@
         offset <= maxOffset;
         offset++
       ) {
-        let sum = 0;
-        let sumA = 0;
-        let sumB = 0;
+        let correlation = 0;
+        let energyA = 0;
+        let energyB = 0;
 
         for (
           let i = 0;
-          i < buffer.length - offset;
+          i < size - offset;
           i++
         ) {
-          const a = buffer[i];
-          const b = buffer[i + offset];
+          const a = normalized[i];
+          const b = normalized[i + offset];
 
-          sum += a * b;
-          sumA += a * a;
-          sumB += b * b;
+          correlation += a * b;
+          energyA += a * a;
+          energyB += b * b;
         }
 
         const denominator =
-          Math.sqrt(sumA * sumB);
+          Math.sqrt(energyA * energyB);
 
-        const correlation =
+        const normalizedCorrelation =
           denominator > 0
-            ? sum / denominator
+            ? correlation / denominator
             : 0;
 
-        if (correlation > bestCorrelation) {
-          bestCorrelation = correlation;
+        if (
+          normalizedCorrelation >
+          bestCorrelation
+        ) {
+          bestCorrelation =
+            normalizedCorrelation;
+
           bestOffset = offset;
         }
       }
 
       return bestOffset > 0 &&
-        bestCorrelation > 0.20
+        bestCorrelation > 0.08
         ? sampleRate / bestOffset
         : -1;
     }
@@ -892,6 +892,19 @@
         );
 
       microphoneSource.connect(analyser);
+
+      /*
+        Keep the audio graph active without
+        playing the microphone back to the singer.
+      */
+      silentGain =
+        audioContext.createGain();
+
+      silentGain.gain.value = 0;
+
+      analyser
+        .connect(silentGain)
+        .connect(audioContext.destination);
 
       setStatus(
         'Microphone active. Sing the highlighted note.',
@@ -1015,6 +1028,7 @@
       }
 
       analyser = null;
+      silentGain = null;
 
       $('startButton').disabled = false;
       $('demoButton').disabled = false;
@@ -1042,10 +1056,21 @@
       const height = canvas.clientHeight;
       const center = height / 2;
 
-      context.clearRect(0, 0, width, height);
+      context.clearRect(
+        0,
+        0,
+        width,
+        height
+      );
 
       context.fillStyle = '#0d1b2a';
-      context.fillRect(0, 0, width, height);
+
+      context.fillRect(
+        0,
+        0,
+        width,
+        height
+      );
 
       context.strokeStyle = '#496450';
       context.lineWidth = 2;
