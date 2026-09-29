@@ -177,11 +177,6 @@
       overflow: hidden;
     }
 
-    /*
-      These boxes share the same coordinate system as the music.
-      They are positioned individually above the corresponding notes,
-      rather than being distributed by a separate CSS grid.
-    */
     .result-boxes {
       position: absolute;
       inset: 0;
@@ -606,10 +601,6 @@
         const measureX =
           measureStart + column * measureWidth;
 
-        /*
-          The quarter notes are evenly distributed across each measure.
-          The boxes use these exact same horizontal centers.
-        */
         const noteCenterX =
           measureX +
           measureWidth *
@@ -619,12 +610,16 @@
 
         if (!box) continue;
 
-        box.style.left = Math.round(noteCenterX - boxSize / 2) + "px";
+        box.style.left =
+          Math.round(noteCenterX - boxSize / 2) + "px";
 
         /*
-          Each box row is positioned above its matching staff system.
+          The boxes are lower than in the previous version.
+          This places them closer to the notes while keeping
+          them above the staff.
         */
-        box.style.top = 18 + row * 135 + "px";
+        box.style.top =
+          32 + row * 135 + "px";
       }
     }
 
@@ -697,10 +692,6 @@
         const x = measureStart + column * measureWidth;
         const y = 58 + row * 135;
 
-        /*
-          The first staff system begins with the treble clef
-          and 4/4 time signature.
-        */
         if (measure === 0) {
           const headerStave = new VF.Stave(
             leftMargin,
@@ -775,10 +766,6 @@
         voice.draw(context, stave);
       }
 
-      /*
-        Position boxes after the notation width is known.
-        This keeps the box row and the notes synchronized.
-      */
       positionResultBoxes(width);
     }
 
@@ -798,7 +785,7 @@
         try {
           node.stop();
         } catch (error) {
-          // The tone may already be stopped.
+          // Tone may already be stopped.
         }
       });
 
@@ -1108,6 +1095,7 @@
               beat++;
 
               playClick(beat === 1);
+
               setStatus(
                 "Count-in: " + beat,
                 "success"
