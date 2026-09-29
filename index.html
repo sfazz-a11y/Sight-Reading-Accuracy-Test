@@ -1,1381 +1,1358 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Choir Pitch Feedback</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choir Pitch Feedback</title>
 
-<script src="https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/cjs/vexflow-core.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/cjs/vexflow-core.js"></script>
 
-<style>
-:root{
-  --navy:#042f5f;
-  --blue:#82bee6;
-  --gold:#d1b43c;
-  --green:#496450;
-  --red:#88293a;
-  --orange:#b77334;
-  --border:#c9d3dc;
-}
+  <style>
+    :root {
+      --navy: #042f5f;
+      --blue: #82bee6;
+      --gold: #d1b43c;
+      --green: #496450;
+      --red: #88293a;
+      --orange: #b77334;
+      --border: #c9d3dc;
+    }
 
-*{box-sizing:border-box}
+    * {
+      box-sizing: border-box;
+    }
 
-body{
-  margin:0;
-  background:#fff;
-  color:#333;
-  font:14px Arial,sans-serif;
-  line-height:1.4;
-}
+    body {
+      margin: 0;
+      background: #ffffff;
+      color: #333;
+      font-family: Arial, sans-serif;
+      line-height: 1.4;
+    }
 
-main{
-  width:min(1050px,100%);
-  margin:auto;
-  padding:14px 16px 24px;
-}
+    main {
+      width: min(1050px, 100%);
+      margin: auto;
+      padding: 16px;
+    }
 
-h1,h2{
-  color:var(--navy);
-  line-height:1.15;
-}
+    h1,
+    h2 {
+      color: var(--navy);
+      line-height: 1.15;
+    }
 
-h1{
-  margin:0 0 8px;
-  font-size:1.8rem;
-}
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.8rem;
+    }
 
-h2{
-  margin:0 0 8px;
-  font-size:1.1rem;
-}
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.1rem;
+    }
 
-p{
-  margin:6px 0 8px;
-}
+    p {
+      margin: 6px 0 8px;
+    }
 
-.main-layout{
-  display:grid;
-  grid-template-columns:210px minmax(0,1fr);
-  gap:12px;
-  align-items:start;
-}
+    .main-layout {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
 
-.panel{
-  padding:14px;
-  margin-bottom:12px;
-  background:#fff;
-  border:1px solid var(--border);
-  border-radius:10px;
-  box-shadow:0 1px 4px #0000000d;
-}
+    .controls-panel {
+      grid-column: 1;
+      padding: 12px;
+    }
 
-.controls-panel{
-  grid-column:1;
-  padding:12px;
-}
+    .content-stack {
+      grid-column: 2;
+      min-width: 0;
+    }
 
-.content-stack{
-  grid-column:2;
-  min-width:0;
-}
+    .panel {
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #0000000d;
+    }
 
-.controls{
-  display:flex;
-  flex-direction:column;
-  gap:7px;
-}
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
 
-button{
-  width:100%;
-  min-height:36px;
-  padding:8px 10px;
-  border:0;
-  border-radius:7px;
-  color:#fff;
-  font-size:.82rem;
-  font-weight:bold;
-  cursor:pointer;
-}
+    button {
+      width: 100%;
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 7px;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
-button:focus{
-  outline:3px solid var(--gold);
-  outline-offset:2px;
-}
+    button:focus {
+      outline: 3px solid var(--gold);
+      outline-offset: 2px;
+    }
 
-button:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
-#startButton{background:var(--navy)}
-#stopButton{background:var(--red)}
-#demoButton{background:var(--orange)}
-#newMelodyButton,#clearResultsButton{background:#687785}
-#playMelodyButton,#playTargetButton{background:var(--green)}
+    #startButton {
+      background: var(--navy);
+    }
 
-.status{
-  padding:8px;
-  margin-top:10px;
-  border-left:4px solid var(--blue);
-  background:#eef7fd;
-  font-size:.78rem;
-}
+    #stopButton {
+      background: var(--red);
+    }
 
-.status.success{
-  border-left-color:var(--green);
-  background:#edf5ef;
-}
+    #demoButton {
+      background: var(--orange);
+    }
 
-.status.error{
-  border-left-color:var(--red);
-  background:#fbecef;
-}
+    #playMelodyButton,
+    #playTargetButton {
+      background: var(--green);
+    }
 
-.demo-note,
-.exercise-description,
-.feedback-description{
-  color:#555;
-  font-size:.8rem;
-}
+    #clearButton {
+      background: #687785;
+    }
 
-.demo-note{
-  padding:8px;
-  margin-top:8px;
-  border:1px solid #ead7a0;
-  border-radius:5px;
-  background:#fff9e7;
-  color:#5b4c13;
-  font-size:.75rem;
-}
+    .status {
+      padding: 8px;
+      margin-top: 10px;
+      border-left: 4px solid var(--blue);
+      background: #eef7fd;
+      font-size: 0.78rem;
+    }
 
-.notation-stage{
-  position:relative;
-  width:100%;
-  height:325px;
-  overflow:hidden;
-  border:1px solid var(--border);
-  border-radius:7px;
-  background:#fff;
-}
+    .status.success {
+      border-left-color: var(--green);
+      background: #edf5ef;
+    }
 
-#notation{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:300px;
-  overflow:hidden;
-}
+    .status.error {
+      border-left-color: var(--red);
+      background: #fbecef;
+    }
 
-.result-boxes{
-  position:absolute;
-  top:0;
-  left:125px;
-  right:20px;
-  z-index:2;
-  display:grid;
-  grid-template-columns:repeat(16,1fr);
-  grid-template-rows:repeat(2,135px);
-  pointer-events:none;
-}
+    .demo-note {
+      padding: 8px;
+      margin-top: 8px;
+      border: 1px solid #ead7a0;
+      border-radius: 5px;
+      background: #fff9e7;
+      color: #5b4c13;
+      font-size: 0.75rem;
+    }
 
-.result-box{
-  justify-self:center;
-  align-self:start;
-  width:22px;
-  height:22px;
-  margin-top:6px;
-  border:2px solid #b7c0c7;
-  border-radius:4px;
-  background:#fff;
-  color:transparent;
-  font-size:16px;
-  font-weight:bold;
-  line-height:18px;
-  text-align:center;
-}
+    .notation-stage {
+      position: relative;
+      width: 100%;
+      height: 350px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+    }
 
-.result-box.correct{
-  border-color:var(--green);
-  background:#edf5ef;
-  color:var(--green);
-}
+    #notation {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 340px;
+      overflow: hidden;
+    }
 
-.result-box.incorrect{
-  border-color:var(--red);
-  background:#fbecef;
-  color:var(--red);
-}
+    /*
+      The result boxes are intentionally lower than before.
+      Their bottom edge remains above the highest possible E5 note.
+    */
+    .result-boxes {
+      position: absolute;
+      top: 18px;
+      left: 125px;
+      right: 20px;
+      z-index: 2;
 
-.tuner-layout{
-  display:grid;
-  grid-template-columns:minmax(220px,1fr) 145px;
-  gap:18px;
-  align-items:center;
-  margin-top:8px;
-}
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      grid-template-rows: repeat(2, 135px);
 
-.tuner-area{
-  min-width:220px;
-  text-align:center;
-}
+      pointer-events: none;
+    }
 
-.tuner{
-  position:relative;
-  width:min(260px,100%);
-  height:132px;
-  margin:auto;
-  overflow:hidden;
-}
+    .result-box {
+      justify-self: center;
+      align-self: start;
 
-.tuner-arc{
-  position:absolute;
-  bottom:0;
-  left:50%;
-  width:250px;
-  height:125px;
-  border-radius:250px 250px 0 0;
-  background:conic-gradient(
-    from 270deg at 50% 100%,
-    #88293a 0deg,
-    #b77334 35deg,
-    #d1b43c 55deg,
-    #496450 82deg,
-    #496450 98deg,
-    #d1b43c 125deg,
-    #b77334 145deg,
-    #88293a 180deg
-  );
-  transform:translateX(-50%);
-}
+      width: 24px;
+      height: 24px;
+      margin-top: 0;
 
-.tuner-needle{
-  position:absolute;
-  bottom:8px;
-  left:50%;
-  z-index:2;
-  width:4px;
-  height:102px;
-  border-radius:4px;
-  background:var(--navy);
-  transform:translateX(-50%) rotate(0deg);
-  transform-origin:50% 100%;
-  transition:transform .1s linear,background .1s linear;
-}
+      border: 2px solid #b7c0c7;
+      border-radius: 4px;
+      background: #fff;
 
-.tuner-center{
-  position:absolute;
-  bottom:3px;
-  left:50%;
-  z-index:3;
-  width:14px;
-  height:14px;
-  border-radius:50%;
-  background:var(--navy);
-  transform:translateX(-50%);
-}
+      color: transparent;
+      font-size: 17px;
+      font-weight: bold;
+      line-height: 20px;
+      text-align: center;
+    }
 
-.tuner-labels{
-  display:flex;
-  justify-content:space-between;
-  width:min(250px,100%);
-  margin:3px auto 0;
-  color:#555;
-  font-size:.75rem;
-  font-weight:bold;
-}
+    .result-box.correct {
+      border-color: var(--green);
+      background: #edf5ef;
+      color: var(--green);
+    }
 
-.feedback-box{
-  padding:12px 8px;
-  border:1px solid var(--border);
-  border-radius:8px;
-  background:#f8fafc;
-  text-align:center;
-}
+    .result-box.incorrect {
+      border-color: var(--red);
+      background: #fbecef;
+      color: var(--red);
+    }
 
-.feedback-label{
-  display:block;
-  margin-bottom:6px;
-  color:#555;
-  font-size:.75rem;
-}
+    .tuner-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 145px;
+      gap: 18px;
+      align-items: center;
+      margin-top: 8px;
+    }
 
-.feedback-value{
-  display:block;
-  color:var(--navy);
-  font-size:1.25rem;
-  font-weight:bold;
-}
+    .tuner-area {
+      min-width: 220px;
+      text-align: center;
+    }
 
-@media(max-width:760px){
-  .main-layout{
-    grid-template-columns:1fr;
-  }
+    .tuner {
+      position: relative;
+      width: min(260px, 100%);
+      height: 132px;
+      margin: auto;
+      overflow: hidden;
+    }
 
-  .controls-panel,
-  .content-stack{
-    grid-column:1;
-  }
+    .tuner-arc {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 250px;
+      height: 125px;
+      border-radius: 250px 250px 0 0;
+      background:
+        conic-gradient(
+          from 270deg at 50% 100%,
+          #88293a 0deg,
+          #b77334 35deg,
+          #d1b43c 55deg,
+          #496450 82deg,
+          #496450 98deg,
+          #d1b43c 125deg,
+          #b77334 145deg,
+          #88293a 180deg
+        );
+      transform: translateX(-50%);
+    }
 
-  .controls-panel{
-    order:1;
-  }
+    .tuner-needle {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      z-index: 2;
+      width: 4px;
+      height: 102px;
+      border-radius: 4px;
+      background: var(--navy);
+      transform: translateX(-50%) rotate(0deg);
+      transform-origin: 50% 100%;
+      transition:
+        transform 0.1s linear,
+        background 0.1s linear;
+    }
 
-  .content-stack{
-    order:2;
-  }
-}
+    .tuner-center {
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      z-index: 3;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--navy);
+      transform: translateX(-50%);
+    }
 
-@media(max-width:560px){
-  .tuner-layout{
-    grid-template-columns:1fr;
-  }
+    .tuner-labels {
+      display: flex;
+      justify-content: space-between;
+      width: min(250px, 100%);
+      margin: 3px auto 0;
+      color: #555;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
 
-  .feedback-box{
-    width:145px;
-    margin:auto;
-  }
-}
-</style>
+    .feedback-box {
+      padding: 12px 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      text-align: center;
+    }
+
+    .feedback-label {
+      display: block;
+      margin-bottom: 6px;
+      color: #555;
+      font-size: 0.75rem;
+    }
+
+    .feedback-value {
+      display: block;
+      color: var(--navy);
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    .graph-explanation {
+      margin: 8px 0 4px;
+      color: #555;
+      font-size: 0.78rem;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 150px;
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #0d1b2a;
+    }
+
+    .help-text {
+      margin-bottom: 0;
+      color: #555;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 760px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .controls-panel,
+      .content-stack {
+        grid-column: 1;
+      }
+
+      .controls-panel {
+        order: 1;
+      }
+
+      .content-stack {
+        order: 2;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .status,
+      .demo-note {
+        grid-column: 1 / -1;
+      }
+
+      .notation-stage {
+        overflow-x: auto;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .controls {
+        display: flex;
+      }
+
+      .tuner-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .feedback-box {
+        width: 145px;
+        margin: auto;
+      }
+    }
+  </style>
 </head>
 
 <body>
-<main>
-  <h1>Choir Pitch Feedback</h1>
+  <main>
+    <h1>Choir Pitch Feedback</h1>
 
-  <p>
-    Sing the written melody one note at a time and receive
-    feedback about pitch accuracy.
-  </p>
+    <p>
+      Follow the written melody, listen to the reference tones, and receive feedback about pitch accuracy.
+    </p>
 
-  <div class="main-layout">
-    <section class="panel controls-panel">
-      <h2>Controls</h2>
+    <div class="main-layout">
+      <section class="panel controls-panel">
+        <h2>Controls</h2>
 
-      <div class="controls">
-        <button id="startButton">Start Microphone</button>
-        <button id="stopButton" disabled>Stop</button>
-        <button id="demoButton">Start Demo Mode</button>
-        <button id="newMelodyButton">New Melody</button>
-        <button id="playMelodyButton">Play Melody</button>
-        <button id="playTargetButton">Play Target Tone</button>
-        <button id="clearResultsButton">Clear Results</button>
+        <div class="controls">
+          <button id="startButton">Start Microphone</button>
+          <button id="stopButton" disabled>Stop</button>
+          <button id="demoButton">Start Demo Mode</button>
+          <button id="playMelodyButton">Play Melody</button>
+          <button id="playTargetButton">Play Target Tone</button>
+          <button id="clearButton">Clear Graph</button>
 
-        <div id="status" class="status" role="status" aria-live="polite">
-          Use Demo Mode to test the exercise.
-        </div>
+          <div id="status" class="status" role="status" aria-live="polite">
+            Use Demo Mode to test the exercise.
+          </div>
 
-        <div class="demo-note">
-          Notes are considered accurate within ±30 cents.
-          No audio is saved.
-        </div>
-      </div>
-    </section>
-
-    <div class="content-stack">
-      <section class="panel">
-        <h2>Treble Clef Sight-Reading Exercise</h2>
-
-        <p class="exercise-description">
-          Eight measures of quarter notes from C4 through E5.
-          Each box above a note shows whether that note was sung correctly.
-        </p>
-
-        <div class="notation-stage">
-          <div id="resultBoxes" class="result-boxes"></div>
-
-          <div id="notation"
-            aria-label="Eight-measure treble clef sight-reading exercise">
+          <div class="demo-note">
+            Reference tones are generated in the browser. No audio is saved.
           </div>
         </div>
       </section>
 
-      <section class="panel">
-        <h2>Pitch Feedback</h2>
+      <div class="content-stack">
+        <section class="panel">
+          <h2>Treble Clef Sight-Reading Exercise</h2>
 
-        <p class="feedback-description">
-          The starting pitch plays first, followed by four unpitched
-          count-in clicks. Sing each highlighted note after the count-in.
-        </p>
+          <p>
+            Follow the written notes from left to right.
+            The current note is highlighted during practice.
+          </p>
 
-        <div class="tuner-layout">
-          <div class="tuner-area">
-            <div class="tuner" aria-label="Semicircular pitch tuner">
-              <div class="tuner-arc"></div>
+          <div class="notation-stage">
+            <div id="resultBoxes" class="result-boxes"></div>
+            <div id="notation" aria-label="Treble clef sight-reading exercise"></div>
+          </div>
+        </section>
 
-              <div id="tunerNeedle"
-                class="tuner-needle"
-                aria-hidden="true">
+        <section class="panel">
+          <h2>Pitch Feedback</h2>
+
+          <div class="tuner-layout">
+            <div class="tuner-area">
+              <div class="tuner" aria-label="Semicircular pitch tuner">
+                <div class="tuner-arc"></div>
+                <div id="tunerNeedle" class="tuner-needle" aria-hidden="true"></div>
+                <div class="tuner-center" aria-hidden="true"></div>
               </div>
 
-              <div class="tuner-center" aria-hidden="true"></div>
+              <div class="tuner-labels" aria-hidden="true">
+                <span>Flat</span>
+                <span>Centered</span>
+                <span>Sharp</span>
+              </div>
             </div>
 
-            <div class="tuner-labels" aria-hidden="true">
-              <span>Flat</span>
-              <span>Centered</span>
-              <span>Sharp</span>
+            <div class="feedback-box">
+              <span class="feedback-label">Current Feedback</span>
+              <span id="feedback" class="feedback-value" aria-live="polite">—</span>
             </div>
           </div>
 
-          <div class="feedback-box">
-            <span class="feedback-label">
-              Current Feedback
-            </span>
+          <p class="graph-explanation">
+            The graph shows pitch relative to the currently active written note.
+          </p>
 
-            <span id="feedback"
-              class="feedback-value"
-              aria-live="polite">
-              —
-            </span>
-          </div>
-        </div>
-      </section>
+          <canvas id="pitchCanvas" aria-label="Visual pitch history"></canvas>
+
+          <p class="help-text">
+            A note is marked correct when the average pitch is within ±30 cents.
+          </p>
+        </section>
+      </div>
     </div>
-  </div>
-</main>
-
-<script>
-const VF = window.VexFlow;
-
-const PITCHES = [
-  {frequency:261.63,key:'c/4'},
-  {frequency:293.66,key:'d/4'},
-  {frequency:329.63,key:'e/4'},
-  {frequency:349.23,key:'f/4'},
-  {frequency:392.00,key:'g/4'},
-  {frequency:440.00,key:'a/4'},
-  {frequency:493.88,key:'b/4'},
-  {frequency:523.25,key:'c/5'},
-  {frequency:587.33,key:'d/5'},
-  {frequency:659.25,key:'e/5'}
-];
-
-const NOTE_COUNT = 32;
-const NOTE_TIME = 700;
-const COUNT_IN_TIME = 700;
-const PITCH_TOLERANCE = 30;
-
-let melody = [];
-let currentNote = -1;
-let noteSamples = [];
-let noteResults = [];
-
-let practiceTimer = null;
-let countInTimer = null;
-let microphoneFrame = null;
-
-let microphoneStream = null;
-let microphoneSource = null;
-let analyser = null;
-let audioContext = null;
-let toneContext = null;
-let silentGain = null;
-
-let running = false;
-let mode = 'demo';
-let fontsReady = false;
-
-const $ = id => document.getElementById(id);
-
-function generateMelody() {
-  melody = [];
-  noteResults = Array(NOTE_COUNT).fill(null);
-  noteSamples = Array.from(
-    {length:NOTE_COUNT},
-    () => []
-  );
-
-  let pitchIndex = 0;
-
-  for (let i = 0; i < NOTE_COUNT; i++) {
-    const choices = [-2,-1,1,2]
-      .map(step => pitchIndex + step)
-      .filter(index =>
-        index >= 0 &&
-        index < PITCHES.length
-      );
-
-    if (i === 0) {
-      pitchIndex = 0;
-    } else {
-      pitchIndex =
-        choices[
-          Math.floor(Math.random() * choices.length)
-        ];
-    }
-
-    melody.push(PITCHES[pitchIndex]);
-  }
-
-  currentNote = -1;
-}
-
-function updateResultBoxes() {
-  const container = $('resultBoxes');
-
-  container.innerHTML = '';
-
-  for (let i = 0; i < NOTE_COUNT; i++) {
-    const box = document.createElement('div');
-
-    box.className = 'result-box';
-
-    if (noteResults[i] === true) {
-      box.classList.add('correct');
-      box.textContent = '✓';
-    }
-
-    if (noteResults[i] === false) {
-      box.classList.add('incorrect');
-      box.textContent = '×';
-    }
-
-    container.appendChild(box);
-  }
-}
-
-function renderNotation() {
-  if (!fontsReady) {
-    return;
-  }
-
-  const container = $('notation');
-  container.innerHTML = '';
-
-  try {
-    const renderer = new VF.Renderer(
-      container,
-      VF.Renderer.Backends.SVG
-    );
-
-    const width =
-      Math.max(container.clientWidth,700);
-
-    renderer.resize(width,300);
-
-    const context = renderer.getContext();
-
-    const leftMargin = 20;
-    const rightMargin = 20;
-    const headerWidth = 105;
-    const measureStart =
-      leftMargin + headerWidth;
-
-    const measureWidth =
-      (width - measureStart - rightMargin) / 4;
-
-    for (let measure = 0; measure < 8; measure++) {
-      const row = Math.floor(measure / 4);
-      const column = measure % 4;
-      const y = 55 + row * 135;
-
-      if (measure === 0) {
-        const headerStave = new VF.Stave(
-          leftMargin,
-          y,
-          headerWidth
-        );
-
-        headerStave
-          .addClef('treble')
-          .addTimeSignature('4/4')
-          .setBegBarType(VF.BarlineType.NONE)
-          .setEndBarType(VF.BarlineType.NONE)
-          .setContext(context)
-          .draw();
-      }
-
-      const x =
-        measureStart +
-        column * measureWidth;
-
-      const stave = new VF.Stave(
-        x,
-        y,
-        measureWidth
-      );
-
-      if (measure === 7) {
-        stave.setEndBarType(
-          VF.BarlineType.END
-        );
-      }
-
-      stave
-        .setContext(context)
-        .draw();
-
-      const notes = melody
-        .slice(
-          measure * 4,
-          measure * 4 + 4
-        )
-        .map((note,noteOffset) => {
-          const noteIndex =
-            measure * 4 + noteOffset;
-
-          const renderedNote =
-            new VF.StaveNote({
-              keys:[note.key],
-              duration:'q'
-            });
-
-          const color =
-            noteIndex === currentNote
-              ? '#d1b43c'
-              : noteIndex < currentNote
-                ? '#496450'
-                : '#000000';
-
-          renderedNote.setStyle({
-            fillStyle:color,
-            strokeStyle:color
-          });
-
-          return renderedNote;
-        });
-
-      const voice = new VF.Voice({
-        numBeats:4,
-        beatValue:4
-      });
-
-      voice.addTickables(notes);
-
-      new VF.Formatter()
-        .joinVoices([voice])
-        .format(
-          [voice],
-          measureWidth - 25
-        );
-
-      voice.draw(context,stave);
-    }
-  } catch (error) {
-    console.error(error);
-
-    container.textContent =
-      'The music notation could not be loaded.';
-  }
-
-  updateResultBoxes();
-}
-
-function setStatus(message,type = '') {
-  $('status').textContent = message;
-  $('status').className = 'status ' + type;
-}
-
-function getToneContext() {
-  if (!toneContext) {
-    toneContext =
-      new (
-        window.AudioContext ||
-        window.webkitAudioContext
-      )();
-  }
-
-  return toneContext;
-}
-
-function playFrequency(
-  frequency,
-  duration = .8
-) {
-  const context = getToneContext();
-
-  context.resume();
-
-  const oscillator =
-    context.createOscillator();
-
-  const gain =
-    context.createGain();
-
-  oscillator.type = 'triangle';
-  oscillator.frequency.value =
-    frequency;
-
-  gain.gain.setValueAtTime(
-    .0001,
-    context.currentTime
-  );
-
-  gain.gain.exponentialRampToValueAtTime(
-    .16,
-    context.currentTime + .03
-  );
-
-  gain.gain.exponentialRampToValueAtTime(
-    .0001,
-    context.currentTime + duration
-  );
-
-  oscillator
-    .connect(gain)
-    .connect(context.destination);
-
-  oscillator.start();
-
-  oscillator.stop(
-    context.currentTime +
-    duration +
-    .05
-  );
-}
-
-function playStartingPitch() {
-  playFrequency(
-    melody[0].frequency,
-    1.1
-  );
-}
-
-function playClick(accent = false) {
-  const context = getToneContext();
-
-  context.resume();
-
-  const buffer =
-    context.createBuffer(
-      1,
-      Math.floor(context.sampleRate * .06),
-      context.sampleRate
-    );
-
-  const data =
-    buffer.getChannelData(0);
-
-  for (let i = 0; i < data.length; i++) {
-    data[i] =
-      (Math.random() * 2 - 1) *
-      Math.exp(
-        -i / (data.length * .12)
-      );
-  }
-
-  const source =
-    context.createBufferSource();
-
-  const filter =
-    context.createBiquadFilter();
-
-  const gain =
-    context.createGain();
-
-  source.buffer = buffer;
-
-  filter.type = 'highpass';
-  filter.frequency.value = 1600;
-
-  gain.gain.setValueAtTime(
-    .0001,
-    context.currentTime
-  );
-
-  gain.gain.exponentialRampToValueAtTime(
-    accent ? .22 : .14,
-    context.currentTime + .005
-  );
-
-  gain.gain.exponentialRampToValueAtTime(
-    .0001,
-    context.currentTime + .08
-  );
-
-  source
-    .connect(filter)
-    .connect(gain)
-    .connect(context.destination);
-
-  source.start();
-
-  source.stop(
-    context.currentTime + .1
-  );
-}
-
-function playMelody() {
-  melody.forEach((note,index) => {
-    setTimeout(
-      () => playFrequency(
-        note.frequency,
-        .5
-      ),
-      index * 600
-    );
-  });
-
-  setStatus(
-    'Playing the complete melody.',
-    'success'
-  );
-}
-
-function playTargetTone() {
-  const note =
-    melody[
-      currentNote >= 0
-        ? currentNote
-        : 0
+  </main>
+
+  <script>
+    const VF = window.VexFlow;
+
+    const PITCHES = [
+      { name: "C4", key: "c/4", frequency: 261.63 },
+      { name: "D4", key: "d/4", frequency: 293.66 },
+      { name: "E4", key: "e/4", frequency: 329.63 },
+      { name: "F4", key: "f/4", frequency: 349.23 },
+      { name: "G4", key: "g/4", frequency: 392.00 },
+      { name: "A4", key: "a/4", frequency: 440.00 },
+      { name: "B4", key: "b/4", frequency: 493.88 },
+      { name: "C5", key: "c/5", frequency: 523.25 },
+      { name: "D5", key: "d/5", frequency: 587.33 },
+      { name: "E5", key: "e/5", frequency: 659.25 }
     ];
 
-  playFrequency(
-    note.frequency,
-    .9
-  );
+    const TOTAL_NOTES = 32;
+    const NOTES_PER_MEASURE = 4;
+    const TOTAL_MEASURES = 8;
+    const NOTE_TIME = 900;
+    const COUNT_IN_TIME = 650;
+    const ACCURACY_MARGIN = 30;
 
-  setStatus(
-    'Playing the target tone.',
-    'success'
-  );
-}
+    let melody = [];
+    let noteSamples = [];
+    let noteResults = [];
+    let pitchHistory = [];
 
-function updateFeedback(
-  detectedFrequency,
-  targetFrequency
-) {
-  const offset =
-    1200 *
-    Math.log2(
-      detectedFrequency /
-      targetFrequency
-    );
+    let running = false;
+    let currentNote = 0;
+    let practiceStartTime = 0;
 
-  const centered =
-    Math.abs(offset) <=
-    PITCH_TOLERANCE;
+    let audioContext = null;
+    let analyser = null;
+    let microphoneSource = null;
+    let microphoneStream = null;
+    let animationFrameId = null;
+    let countInTimer = null;
+    let noteTimer = null;
 
-  $('feedback').textContent =
-    centered
-      ? 'Centered'
-      : offset < 0
-        ? 'Flat'
-        : 'Sharp';
+    let toneNodes = [];
 
-  const angle =
-    Math.max(
-      -100,
-      Math.min(100,offset)
-    ) * .45;
+    const startButton = document.getElementById("startButton");
+    const stopButton = document.getElementById("stopButton");
+    const demoButton = document.getElementById("demoButton");
+    const playMelodyButton = document.getElementById("playMelodyButton");
+    const playTargetButton = document.getElementById("playTargetButton");
+    const clearButton = document.getElementById("clearButton");
 
-  $('tunerNeedle').style.transform =
-    'translateX(-50%) rotate(' +
-    angle +
-    'deg)';
+    const statusBox = document.getElementById("status");
+    const feedbackDisplay = document.getElementById("feedback");
+    const tunerNeedle = document.getElementById("tunerNeedle");
+    const canvas = document.getElementById("pitchCanvas");
+    const canvasContext = canvas.getContext("2d");
+    const notationContainer = document.getElementById("notation");
+    const resultBoxes = document.getElementById("resultBoxes");
 
-  $('tunerNeedle').style.background =
-    centered
-      ? '#496450'
-      : offset < 0
-        ? '#b77334'
-        : '#88293a';
+    startButton.onclick = () => startPractice("microphone");
+    stopButton.onclick = () => stopPractice(true);
+    demoButton.onclick = () => startPractice("demo");
+    playMelodyButton.onclick = playMelody;
+    playTargetButton.onclick = playTargetTone;
+    clearButton.onclick = clearDisplay;
 
-  if (
-    currentNote >= 0 &&
-    currentNote < NOTE_COUNT
-  ) {
-    noteSamples[currentNote].push(
-      offset
-    );
-  }
-}
-
-function autoCorrelate(
-  buffer,
-  sampleRate
-) {
-  const size = buffer.length;
-
-  let mean = 0;
-
-  for (let i = 0; i < size; i++) {
-    mean += buffer[i];
-  }
-
-  mean /= size;
-
-  const normalized =
-    new Float32Array(size);
-
-  let rms = 0;
-
-  for (let i = 0; i < size; i++) {
-    normalized[i] =
-      buffer[i] - mean;
-
-    rms +=
-      normalized[i] *
-      normalized[i];
-  }
-
-  rms =
-    Math.sqrt(rms / size);
-
-  if (rms < .002) {
-    return -1;
-  }
-
-  const minOffset =
-    Math.floor(sampleRate / 1000);
-
-  const maxOffset =
-    Math.floor(sampleRate / 70);
-
-  let bestOffset = -1;
-  let bestCorrelation = 0;
-
-  for (
-    let offset = minOffset;
-    offset <= maxOffset;
-    offset++
-  ) {
-    let correlation = 0;
-    let energyA = 0;
-    let energyB = 0;
-
-    for (
-      let i = 0;
-      i < size - offset;
-      i++
-    ) {
-      const a = normalized[i];
-      const b = normalized[i + offset];
-
-      correlation += a * b;
-      energyA += a * a;
-      energyB += b * b;
-    }
-
-    const denominator =
-      Math.sqrt(
-        energyA * energyB
-      );
-
-    const normalizedCorrelation =
-      denominator > 0
-        ? correlation / denominator
-        : 0;
-
-    if (
-      normalizedCorrelation >
-      bestCorrelation
-    ) {
-      bestCorrelation =
-        normalizedCorrelation;
-
-      bestOffset = offset;
-    }
-  }
-
-  return bestOffset > 0 &&
-    bestCorrelation > .08
-    ? sampleRate / bestOffset
-    : -1;
-}
-
-function microphoneLoop() {
-  if (!analyser || !audioContext) {
-    return;
-  }
-
-  const buffer =
-    new Float32Array(
-      analyser.fftSize
-    );
-
-  analyser.getFloatTimeDomainData(
-    buffer
-  );
-
-  const frequency =
-    autoCorrelate(
-      buffer,
-      audioContext.sampleRate
-    );
-
-  if (
-    frequency > 70 &&
-    frequency < 1000 &&
-    melody[currentNote]
-  ) {
-    updateFeedback(
-      frequency,
-      melody[currentNote].frequency
-    );
-  }
-
-  microphoneFrame =
-    requestAnimationFrame(
-      microphoneLoop
-    );
-}
-
-async function prepareMicrophone() {
-  if (
-    !navigator.mediaDevices ||
-    !navigator.mediaDevices.getUserMedia
-  ) {
-    throw new Error(
-      'Microphone access is not supported.'
-    );
-  }
-
-  microphoneStream =
-    await navigator.mediaDevices.getUserMedia({
-      audio:{
-        channelCount:1,
-        echoCancellation:false,
-        autoGainControl:false,
-        noiseSuppression:false
-      }
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      renderNotation();
     });
 
-  audioContext =
-    new (
-      window.AudioContext ||
-      window.webkitAudioContext
-    )();
+    function setStatus(message, type = "") {
+      statusBox.textContent = message;
+      statusBox.className = "status " + type;
+    }
 
-  await audioContext.resume();
+    function generateMelody() {
+      melody = [];
+      let previousIndex = 0;
 
-  analyser =
-    audioContext.createAnalyser();
+      for (let i = 0; i < TOTAL_NOTES; i++) {
+        const possibleSteps = [-2, -1, 1, 2]
+          .map(step => previousIndex + step)
+          .filter(index => index >= 0 && index < PITCHES.length);
 
-  analyser.fftSize = 4096;
-  analyser.smoothingTimeConstant = 0;
+        if (i === 0) {
+          previousIndex = 0;
+        } else if (possibleSteps.length > 0) {
+          previousIndex =
+            possibleSteps[Math.floor(Math.random() * possibleSteps.length)];
+        }
 
-  microphoneSource =
-    audioContext.createMediaStreamSource(
-      microphoneStream
-    );
+        melody.push(PITCHES[previousIndex]);
+      }
+    }
 
-  microphoneSource.connect(
-    analyser
-  );
+    function createResultBoxes() {
+      resultBoxes.innerHTML = "";
 
-  silentGain =
-    audioContext.createGain();
+      for (let i = 0; i < TOTAL_NOTES; i++) {
+        const box = document.createElement("div");
+        box.className = "result-box";
+        box.id = "result-" + i;
+        box.setAttribute("aria-label", "Note " + (i + 1) + " not yet evaluated");
+        resultBoxes.appendChild(box);
+      }
+    }
 
-  silentGain.gain.value = 0;
+    function updateResultBox(index, result) {
+      const box = document.getElementById("result-" + index);
+      if (!box) return;
 
-  analyser
-    .connect(silentGain)
-    .connect(audioContext.destination);
-}
+      box.classList.remove("correct", "incorrect");
 
-function finalizeNote(noteIndex) {
-  if (
-    noteIndex < 0 ||
-    noteIndex >= NOTE_COUNT
-  ) {
-    return;
-  }
-
-  const samples =
-    noteSamples[noteIndex];
-
-  if (
-    !samples ||
-    !samples.length
-  ) {
-    noteResults[noteIndex] = false;
-  } else {
-    const average =
-      samples.reduce(
-        (total,value) =>
-          total + Math.abs(value),
-        0
-      ) / samples.length;
-
-    noteResults[noteIndex] =
-      average <= PITCH_TOLERANCE;
-  }
-
-  updateResultBoxes();
-}
-
-function beginActivePractice() {
-  setStatus(
-    'Sing the highlighted notes.',
-    'success'
-  );
-
-  if (mode === 'microphone') {
-    microphoneLoop();
-  }
-
-  let demoStep = 0;
-
-  practiceTimer =
-    setInterval(() => {
-      if (
-        mode === 'demo' &&
-        melody[currentNote]
-      ) {
-        const demoOffsets = [
-          -18,-8,4,12,
-          24,-10,6,-4
-        ];
-
-        const offset =
-          demoOffsets[
-            demoStep %
-            demoOffsets.length
-          ];
-
-        const frequency =
-          melody[currentNote].frequency *
-          Math.pow(2,offset / 1200);
-
-        updateFeedback(
-          frequency,
-          melody[currentNote].frequency
-        );
-
-        playFrequency(
-          melody[currentNote].frequency,
-          .25
-        );
+      if (result === "correct") {
+        box.classList.add("correct");
+        box.textContent = "✓";
+        box.setAttribute("aria-label", "Note " + (index + 1) + " correct");
       }
 
-      finalizeNote(currentNote);
+      if (result === "incorrect") {
+        box.classList.add("incorrect");
+        box.textContent = "×";
+        box.setAttribute("aria-label", "Note " + (index + 1) + " incorrect");
+      }
+    }
 
-      currentNote++;
-      demoStep++;
+    async function prepareNotation() {
+      try {
+        await VF.loadFonts("Bravura", "Academico");
+        VF.setFonts("Bravura", "Academico");
+        renderNotation();
+      } catch (error) {
+        console.error(error);
+        notationContainer.textContent = "The music notation could not be loaded.";
+      }
+    }
+
+    function renderNotation() {
+      if (!melody.length) return;
+
+      notationContainer.innerHTML = "";
+
+      const width = Math.max(notationContainer.clientWidth, 720);
+      const renderer = new VF.Renderer(
+        notationContainer,
+        VF.Renderer.Backends.SVG
+      );
+
+      renderer.resize(width, 340);
+
+      const context = renderer.getContext();
+
+      const leftMargin = 20;
+      const rightMargin = 20;
+      const headerWidth = 105;
+      const measureStart = leftMargin + headerWidth;
+      const measureWidth =
+        (width - measureStart - rightMargin) / 4;
+
+      for (let measure = 0; measure < TOTAL_MEASURES; measure++) {
+        const row = Math.floor(measure / 4);
+        const column = measure % 4;
+
+        const x = measureStart + column * measureWidth;
+        const y = 58 + row * 135;
+
+        const stave = new VF.Stave(x, y, measureWidth);
+
+        if (measure === 0) {
+          const headerStave = new VF.Stave(
+            leftMargin,
+            y,
+            headerWidth
+          );
+
+          headerStave
+            .addClef("treble")
+            .addTimeSignature("4/4")
+            .setBegBarType(VF.BarlineType.NONE)
+            .setEndBarType(VF.BarlineType.NONE)
+            .setContext(context)
+            .draw();
+        }
+
+        if (measure === TOTAL_MEASURES - 1) {
+          stave.setEndBarType(VF.BarlineType.END);
+        }
+
+        stave.setContext(context).draw();
+
+        const notesForMeasure = melody.slice(
+          measure * NOTES_PER_MEASURE,
+          measure * NOTES_PER_MEASURE + NOTES_PER_MEASURE
+        );
+
+        const notes = notesForMeasure.map((note, noteOffset) => {
+          const index = measure * NOTES_PER_MEASURE + noteOffset;
+
+          const staveNote = new VF.StaveNote({
+            keys: [note.key],
+            duration: "q"
+          });
+
+          let color = "#000000";
+
+          if (index === currentNote) {
+            color = "#d1b43c";
+          } else if (noteResults[index] === "correct") {
+            color = "#496450";
+          } else if (noteResults[index] === "incorrect") {
+            color = "#88293a";
+          }
+
+          staveNote.setStyle({
+            fillStyle: color,
+            strokeStyle: color
+          });
+
+          return staveNote;
+        });
+
+        const voice = new VF.Voice({
+          numBeats: 4,
+          beatValue: 4
+        });
+
+        voice.addTickables(notes);
+
+        new VF.Formatter()
+          .joinVoices([voice])
+          .format([voice], measureWidth - 24);
+
+        voice.draw(context, stave);
+      }
+    }
+
+    function resizeCanvas() {
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
+      canvas.width = Math.floor(width * devicePixelRatio);
+      canvas.height = Math.floor(height * devicePixelRatio);
+
+      canvasContext.setTransform(
+        devicePixelRatio,
+        0,
+        0,
+        devicePixelRatio,
+        0,
+        0
+      );
+
+      drawPitchHistory();
+    }
+
+    function getToneContext() {
+      if (!audioContext) {
+        audioContext = new (
+          window.AudioContext || window.webkitAudioContext
+        )();
+      }
+
+      return audioContext;
+    }
+
+    function stopAllTones() {
+      toneNodes.forEach(node => {
+        try {
+          node.stop();
+        } catch (error) {
+          // The tone may already be stopped.
+        }
+      });
+
+      toneNodes = [];
+    }
+
+    function playFrequency(frequency, duration = 0.7, startTime = null) {
+      const context = getToneContext();
+      const start = startTime || context.currentTime;
+
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.value = frequency;
+
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.16, start + 0.03);
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        start + duration
+      );
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.05);
+
+      toneNodes.push(oscillator);
+    }
+
+    function playClick(accent = false) {
+      const context = getToneContext();
+      const start = context.currentTime;
+
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+
+      oscillator.type = "square";
+      oscillator.frequency.value = accent ? 1000 : 700;
+
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(
+        accent ? 0.18 : 0.11,
+        start + 0.005
+      );
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        start + 0.08
+      );
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+
+      oscillator.start(start);
+      oscillator.stop(start + 0.1);
+    }
+
+    function playMelody() {
+      stopAllTones();
+
+      const context = getToneContext();
+      context.resume();
+
+      const start = context.currentTime + 0.05;
+
+      melody.forEach((note, index) => {
+        playFrequency(
+          note.frequency,
+          0.65,
+          start + index * 0.78
+        );
+      });
+
+      setStatus("Playing the written melody.", "success");
+    }
+
+    function playTargetTone() {
+      stopAllTones();
+
+      const context = getToneContext();
+      context.resume();
+
+      const note = melody[currentNote] || melody[0];
+
+      playFrequency(
+        note.frequency,
+        0.9,
+        context.currentTime + 0.05
+      );
+
+      setStatus("Playing the current target tone.", "success");
+    }
+
+    function updateTuner(cents) {
+      const limited = Math.max(-100, Math.min(100, cents));
+      const angle = limited * 0.45;
+
+      tunerNeedle.style.transform =
+        "translateX(-50%) rotate(" + angle + "deg)";
+
+      if (Math.abs(cents) <= 20) {
+        tunerNeedle.style.background = "#496450";
+      } else if (cents < 0) {
+        tunerNeedle.style.background = "#b77334";
+      } else {
+        tunerNeedle.style.background = "#88293a";
+      }
+    }
+
+    function calculateCentsDifference(detected, target) {
+      return 1200 * Math.log2(detected / target);
+    }
+
+    function updatePitchFeedback(frequency, targetNote) {
+      const cents = calculateCentsDifference(
+        frequency,
+        targetNote.frequency
+      );
+
+      if (Math.abs(cents) <= 20) {
+        feedbackDisplay.textContent = "Centered";
+      } else if (cents < 0) {
+        feedbackDisplay.textContent = "Flat";
+      } else {
+        feedbackDisplay.textContent = "Sharp";
+      }
+
+      updateTuner(cents);
+    }
+
+    function autoCorrelate(buffer, sampleRate) {
+      let rms = 0;
+
+      for (let i = 0; i < buffer.length; i++) {
+        rms += buffer[i] * buffer[i];
+      }
+
+      rms = Math.sqrt(rms / buffer.length);
+
+      if (rms < 0.01) {
+        return -1;
+      }
+
+      let bestOffset = -1;
+      let bestCorrelation = 0;
+
+      const minOffset = Math.floor(sampleRate / 1000);
+      const maxOffset = Math.floor(sampleRate / 80);
+
+      for (
+        let offset = minOffset;
+        offset <= maxOffset;
+        offset++
+      ) {
+        let correlation = 0;
+
+        for (let i = 0; i < buffer.length - offset; i++) {
+          correlation += buffer[i] * buffer[i + offset];
+        }
+
+        correlation /= buffer.length - offset;
+
+        if (correlation > bestCorrelation) {
+          bestCorrelation = correlation;
+          bestOffset = offset;
+        }
+      }
+
+      if (bestOffset === -1 || bestCorrelation < 0.01) {
+        return -1;
+      }
+
+      return sampleRate / bestOffset;
+    }
+
+    function addPitchSample(cents, frequency, targetNote) {
+      noteSamples.push(cents);
+
+      pitchHistory.push({
+        frequency,
+        targetFrequency: targetNote.frequency
+      });
+
+      if (pitchHistory.length > 180) {
+        pitchHistory.shift();
+      }
+
+      updatePitchFeedback(frequency, targetNote);
+      drawPitchHistory();
+    }
+
+    function finalizeCurrentNote() {
+      if (!noteSamples.length) {
+        noteResults[currentNote] = "incorrect";
+        updateResultBox(currentNote, "incorrect");
+        return;
+      }
+
+      const averageAbsoluteCents =
+        noteSamples.reduce(
+          (sum, value) => sum + Math.abs(value),
+          0
+        ) / noteSamples.length;
+
+      const result =
+        averageAbsoluteCents <= ACCURACY_MARGIN
+          ? "correct"
+          : "incorrect";
+
+      noteResults[currentNote] = result;
+      updateResultBox(currentNote, result);
+    }
+
+    function beginActivePractice(mode) {
+      practiceStartTime = performance.now();
+      currentNote = 0;
+      noteSamples = [];
+
+      setStatus(
+        mode === "microphone"
+          ? "Sing the highlighted notes."
+          : "Demo practice is running.",
+        "success"
+      );
 
       renderNotation();
 
-      if (
-        currentNote >=
-        melody.length
-      ) {
-        stopPractice();
+      if (mode === "microphone") {
+        beginMicrophoneLoop();
+      }
 
+      noteTimer = setInterval(() => {
+        finalizeCurrentNote();
+
+        currentNote++;
+
+        if (currentNote >= TOTAL_NOTES) {
+          finishPractice();
+          return;
+        }
+
+        noteSamples = [];
+        renderNotation();
+      }, NOTE_TIME);
+    }
+
+    function startPractice(mode) {
+      if (running) return;
+
+      running = true;
+      currentNote = 0;
+      noteSamples = [];
+      noteResults = [];
+      pitchHistory = [];
+
+      createResultBoxes();
+      renderNotation();
+      resizeCanvas();
+
+      startButton.disabled = true;
+      stopButton.disabled = false;
+      demoButton.disabled = true;
+
+      let microphonePromise = Promise.resolve();
+
+      if (mode === "microphone") {
+        microphonePromise = prepareMicrophone();
+      }
+
+      microphonePromise
+        .then(() => {
+          if (!running) return;
+
+          const context = getToneContext();
+          context.resume();
+
+          setStatus("Playing the starting pitch.", "success");
+
+          playFrequency(
+            melody[0].frequency,
+            0.9,
+            context.currentTime + 0.05
+          );
+
+          setTimeout(() => {
+            if (!running) return;
+
+            let beat = 0;
+
+            const countInBeat = () => {
+              beat++;
+
+              playClick(beat === 1);
+              setStatus("Count-in: " + beat, "success");
+
+              if (beat >= 4) {
+                clearInterval(countInTimer);
+                countInTimer = null;
+
+                setTimeout(() => {
+                  if (running) {
+                    beginActivePractice(mode);
+                  }
+                }, 150);
+              }
+            };
+
+            countInBeat();
+            countInTimer = setInterval(
+              countInBeat,
+              COUNT_IN_TIME
+            );
+          }, 1100);
+        })
+        .catch(error => {
+          console.error(error);
+          setStatus(
+            "Microphone access was unavailable. Demo Mode is still available.",
+            "error"
+          );
+          stopPractice(false);
+        });
+    }
+
+    async function prepareMicrophone() {
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia
+      ) {
+        throw new Error("Microphone access is not supported.");
+      }
+
+      microphoneStream =
+        await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            autoGainControl: false,
+            noiseSuppression: false
+          }
+        });
+
+      audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
+
+      await audioContext.resume();
+
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 4096;
+      analyser.smoothingTimeConstant = 0.2;
+
+      microphoneSource =
+        audioContext.createMediaStreamSource(
+          microphoneStream
+        );
+
+      microphoneSource.connect(analyser);
+    }
+
+    function beginMicrophoneLoop() {
+      if (!analyser) return;
+
+      const buffer = new Float32Array(analyser.fftSize);
+
+      const analyze = () => {
+        if (!running || !analyser) return;
+
+        analyser.getFloatTimeDomainData(buffer);
+
+        const frequency = autoCorrelate(
+          buffer,
+          audioContext.sampleRate
+        );
+
+        if (frequency >= 70 && frequency <= 1000) {
+          const targetNote = melody[currentNote];
+
+          const cents = calculateCentsDifference(
+            frequency,
+            targetNote.frequency
+          );
+
+          addPitchSample(cents, frequency, targetNote);
+        }
+
+        animationFrameId = requestAnimationFrame(analyze);
+      };
+
+      analyze();
+    }
+
+    function beginDemoLoop() {
+      const demoOffsets = [
+        -14, 8, -5, 12,
+        22, -9, 5, -16,
+        -7, 14, -4, 9,
+        28, -12, 4, -8,
+        -10, 6, -3, 11,
+        18, -6, 7, -13,
+        -5, 10, -8, 15,
+        25, -9, 4, -6
+      ];
+
+      let sampleIndex = 0;
+
+      const demoFrame = () => {
+        if (!running || currentNote >= TOTAL_NOTES) {
+          return;
+        }
+
+        const targetNote = melody[currentNote];
+        const cents = demoOffsets[sampleIndex % demoOffsets.length];
+        const frequency =
+          targetNote.frequency *
+          Math.pow(2, cents / 1200);
+
+        addPitchSample(cents, frequency, targetNote);
+
+        sampleIndex++;
+
+        setTimeout(demoFrame, 90);
+      };
+
+      demoFrame();
+    }
+
+    function finishPractice() {
+      if (!running) return;
+
+      finalizeCurrentNote();
+
+      const correctCount = noteResults.filter(
+        result => result === "correct"
+      ).length;
+
+      stopPractice(false);
+
+      currentNote = TOTAL_NOTES;
+      renderNotation();
+
+      feedbackDisplay.textContent = "Complete";
+      updateTuner(0);
+
+      setStatus(
+        "Practice complete: " +
+          correctCount +
+          " of " +
+          TOTAL_NOTES +
+          " notes were within ±30 cents.",
+        "success"
+      );
+    }
+
+    function stopPractice(showStatus = true) {
+      running = false;
+
+      if (countInTimer) {
+        clearInterval(countInTimer);
+        countInTimer = null;
+      }
+
+      if (noteTimer) {
+        clearInterval(noteTimer);
+        noteTimer = null;
+      }
+
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+
+      stopAllTones();
+
+      if (microphoneStream) {
+        microphoneStream
+          .getTracks()
+          .forEach(track => track.stop());
+
+        microphoneStream = null;
+      }
+
+      if (microphoneSource) {
+        microphoneSource.disconnect();
+        microphoneSource = null;
+      }
+
+      if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+      }
+
+      analyser = null;
+
+      startButton.disabled = false;
+      stopButton.disabled = true;
+      demoButton.disabled = false;
+
+      if (showStatus) {
         setStatus(
-          'Practice complete. Review the check marks and X marks.',
-          'success'
+          "Practice stopped. Your pitch history remains visible."
         );
       }
-    },NOTE_TIME);
-}
+    }
 
-function startPractice() {
-  if (running) {
-    return;
-  }
+    function clearDisplay() {
+      stopPractice(false);
 
-  running = true;
-  currentNote = 0;
+      noteSamples = [];
+      noteResults = [];
+      pitchHistory = [];
+      currentNote = 0;
 
-  noteResults =
-    Array(NOTE_COUNT).fill(null);
+      createResultBoxes();
+      renderNotation();
 
-  noteSamples =
-    Array.from(
-      {length:NOTE_COUNT},
-      () => []
-    );
+      feedbackDisplay.textContent = "—";
+      updateTuner(0);
+      drawPitchHistory();
 
-  $('startButton').disabled = true;
-  $('demoButton').disabled = true;
-  $('newMelodyButton').disabled = true;
-  $('stopButton').disabled = false;
+      setStatus("Display cleared. Use Demo Mode to test the exercise.");
+    }
 
-  updateResultBoxes();
-  renderNotation();
+    function drawGraphLine(y, color, width) {
+      canvasContext.strokeStyle = color;
+      canvasContext.lineWidth = width;
+      canvasContext.beginPath();
+      canvasContext.moveTo(0, y);
+      canvasContext.lineTo(canvas.clientWidth, y);
+      canvasContext.stroke();
+    }
 
-  let microphonePromise =
-    Promise.resolve();
+    function drawPitchHistory() {
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const center = height / 2;
+      const range = 100;
 
-  if (mode === 'microphone') {
-    microphonePromise =
-      prepareMicrophone();
-  }
+      canvasContext.clearRect(0, 0, width, height);
 
-  setStatus(
-    'Playing the starting pitch.',
-    'success'
-  );
+      canvasContext.fillStyle = "#0d1b2a";
+      canvasContext.fillRect(0, 0, width, height);
 
-  playStartingPitch();
+      drawGraphLine(center, "#496450", 2);
+      drawGraphLine(height * 0.25, "#526579", 1);
+      drawGraphLine(height * 0.75, "#526579", 1);
 
-  window.setTimeout(() => {
-    let beat = 0;
+      canvasContext.fillStyle = "#ffffff";
+      canvasContext.font = "10px Arial";
+      canvasContext.fillText("+100", 8, 16);
+      canvasContext.fillText("Target", 8, center - 6);
+      canvasContext.fillText("-100", 8, height - 8);
 
-    setStatus(
-      'Count-in: 1',
-      'success'
-    );
+      if (!pitchHistory.length) {
+        return;
+      }
 
-    playClick(true);
-    beat++;
+      canvasContext.strokeStyle = "#82bee6";
+      canvasContext.lineWidth = 2.5;
+      canvasContext.beginPath();
 
-    countInTimer =
-      setInterval(() => {
-        playClick(false);
+      pitchHistory.forEach((sample, index) => {
+        const x =
+          (index /
+            Math.max(pitchHistory.length - 1, 1)) *
+          width;
 
-        if (beat < 4) {
-          setStatus(
-            'Count-in: ' + (beat + 1),
-            'success'
-          );
+        const cents = Math.max(
+          -range,
+          Math.min(
+            range,
+            calculateCentsDifference(
+              sample.frequency,
+              sample.targetFrequency
+            )
+          )
+        );
+
+        const y =
+          center -
+          (cents / range) *
+            (height / 2);
+
+        if (index === 0) {
+          canvasContext.moveTo(x, y);
+        } else {
+          canvasContext.lineTo(x, y);
         }
+      });
 
-        beat++;
-
-        if (beat >= 4) {
-          clearInterval(countInTimer);
-          countInTimer = null;
-
-          microphonePromise
-            .then(() => {
-              beginActivePractice();
-            })
-            .catch(() => {
-              setStatus(
-                'Microphone access was unavailable. Demo Mode is still available.',
-                'error'
-              );
-
-              stopPractice();
-            });
-        }
-      },COUNT_IN_TIME);
-  },1100);
-}
-
-function stopPractice() {
-  running = false;
-
-  clearInterval(practiceTimer);
-  clearInterval(countInTimer);
-
-  practiceTimer = null;
-  countInTimer = null;
-
-  if (microphoneFrame) {
-    cancelAnimationFrame(
-      microphoneFrame
-    );
-
-    microphoneFrame = null;
-  }
-
-  if (microphoneStream) {
-    microphoneStream
-      .getTracks()
-      .forEach(track =>
-        track.stop()
-      );
-
-    microphoneStream = null;
-  }
-
-  if (microphoneSource) {
-    microphoneSource.disconnect();
-    microphoneSource = null;
-  }
-
-  if (audioContext) {
-    audioContext.close();
-    audioContext = null;
-  }
-
-  analyser = null;
-  silentGain = null;
-
-  $('startButton').disabled = false;
-  $('demoButton').disabled = false;
-  $('newMelodyButton').disabled = false;
-  $('stopButton').disabled = true;
-}
-
-function createNewMelody() {
-  stopPractice();
-  generateMelody();
-  renderNotation();
-  updateResultBoxes();
-
-  $('feedback').textContent = '—';
-
-  setStatus(
-    'A new eight-measure melody is ready.'
-  );
-}
-
-$('startButton').onclick = () => {
-  mode = 'microphone';
-  startPractice();
-};
-
-$('demoButton').onclick = () => {
-  mode = 'demo';
-  startPractice();
-};
-
-$('stopButton').onclick =
-  stopPractice;
-
-$('newMelodyButton').onclick =
-  createNewMelody;
-
-$('playMelodyButton').onclick =
-  playMelody;
-
-$('playTargetButton').onclick =
-  playTargetTone;
-
-$('clearResultsButton').onclick = () => {
-  noteResults =
-    Array(NOTE_COUNT).fill(null);
-
-  noteSamples =
-    Array.from(
-      {length:NOTE_COUNT},
-      () => []
-    );
-
-  updateResultBoxes();
-
-  $('feedback').textContent = '—';
-
-  setStatus(
-    'Note results cleared.'
-  );
-};
-
-window.onresize = () => {
-  renderNotation();
-  updateResultBoxes();
-};
-
-async function initialize() {
-  try {
-    await VF.loadFonts(
-      'Bravura',
-      'Academico'
-    );
-
-    VF.setFonts(
-      'Bravura',
-      'Academico'
-    );
-
-    fontsReady = true;
+      canvasContext.stroke();
+    }
 
     generateMelody();
-    renderNotation();
-    updateResultBoxes();
-  } catch (error) {
-    console.error(error);
-
-    $('notation').textContent =
-      'The music notation could not be loaded.';
-  }
-}
-
-initialize();
-</script>
+    createResultBoxes();
+    prepareNotation();
+    resizeCanvas();
+  </script>
 </body>
 </html>
