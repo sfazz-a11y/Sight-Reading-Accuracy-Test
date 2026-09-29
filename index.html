@@ -613,10 +613,6 @@
         box.style.left =
           Math.round(noteCenterX - boxSize / 2) + "px";
 
-        /*
-          The box bottoms are approximately 5 pixels above
-          the top staff line.
-        */
         box.style.top =
           29 + row * 135 + "px";
       }
@@ -728,9 +724,19 @@
           const index =
             measure * NOTES_PER_MEASURE + noteOffset;
 
+          /*
+            B4 and all higher notes use downward stems.
+            Notes below B4 use upward stems.
+          */
+          const stemDirection =
+            ["b/4", "c/5", "d/5", "e/5"].includes(note.key)
+              ? VF.Stem.DOWN
+              : VF.Stem.UP;
+
           const staveNote = new VF.StaveNote({
             keys: [note.key],
-            duration: "q"
+            duration: "q",
+            stem_direction: stemDirection
           });
 
           let color = "#000000";
