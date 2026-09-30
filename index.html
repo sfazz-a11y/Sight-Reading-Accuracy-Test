@@ -9,220 +9,219 @@
 
   <style>
     :root {
-      --navy:#042f5f;
-      --blue:#82bee6;
-      --gold:#d1b43c;
-      --green:#496450;
-      --red:#88293a;
-      --orange:#b77334;
-      --border:#c9d3dc;
+      --navy: #042f5f;
+      --blue: #82bee6;
+      --gold: #d1b43c;
+      --green: #496450;
+      --red: #88293a;
+      --border: #c9d3dc;
     }
 
     * {
-      box-sizing:border-box;
+      box-sizing: border-box;
     }
 
     body {
-      margin:0;
-      background:#fff;
-      color:#333;
-      font-family:Arial,sans-serif;
-      line-height:1.4;
+      margin: 0;
+      background: #ffffff;
+      color: #333;
+      font-family: Arial, sans-serif;
+      line-height: 1.4;
     }
 
     main {
-      width:min(1050px,100%);
-      margin:auto;
-      padding:16px;
+      width: min(1050px, 100%);
+      margin: auto;
+      padding: 16px;
     }
 
-    h1,h2 {
-      color:var(--navy);
-      line-height:1.15;
+    h1,
+    h2 {
+      color: var(--navy);
+      line-height: 1.15;
     }
 
     h1 {
-      margin:0 0 8px;
-      font-size:1.8rem;
+      margin: 0 0 8px;
+      font-size: 1.8rem;
     }
 
     h2 {
-      margin:0 0 8px;
-      font-size:1.1rem;
+      margin: 0 0 8px;
+      font-size: 1.1rem;
     }
 
     p {
-      margin:6px 0 8px;
+      margin: 6px 0 8px;
     }
 
     .main-layout {
-      display:grid;
-      grid-template-columns:210px minmax(0,1fr);
-      gap:12px;
-      align-items:start;
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
     }
 
     .controls-panel {
-      grid-column:1;
-      padding:12px;
+      grid-column: 1;
+      padding: 12px;
     }
 
     .content-stack {
-      grid-column:2;
-      min-width:0;
+      grid-column: 2;
+      min-width: 0;
     }
 
     .panel {
-      padding:14px;
-      margin-bottom:12px;
-      background:#fff;
-      border:1px solid var(--border);
-      border-radius:10px;
-      box-shadow:0 1px 4px #0000000d;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #0000000d;
     }
 
     .controls {
-      display:flex;
-      flex-direction:column;
-      gap:7px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
     }
 
     button {
-      width:100%;
-      min-height:36px;
-      padding:8px 10px;
-      border:0;
-      border-radius:7px;
-      color:#fff;
-      font-size:.82rem;
-      font-weight:bold;
-      cursor:pointer;
+      width: 100%;
+      min-height: 36px;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 7px;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: bold;
+      cursor: pointer;
     }
 
     button:focus {
-      outline:3px solid var(--gold);
-      outline-offset:2px;
+      outline: 3px solid var(--gold);
+      outline-offset: 2px;
     }
 
     button:disabled {
-      opacity:.5;
-      cursor:not-allowed;
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
-    #startButton { background:var(--navy); }
-    #stopButton { background:var(--red); }
-    #demoButton { background:var(--orange); }
+    #startButton {
+      background: var(--navy);
+    }
+
+    #stopButton {
+      background: var(--red);
+    }
+
     #playMelodyButton,
-    #playTargetButton { background:var(--green); }
-    #clearButton { background:#687785; }
-
-    .status {
-      padding:8px;
-      margin-top:10px;
-      border-left:4px solid var(--blue);
-      background:#eef7fd;
-      font-size:.78rem;
-    }
-
-    .status.success {
-      border-left-color:var(--green);
-      background:#edf5ef;
-    }
-
-    .status.error {
-      border-left-color:var(--red);
-      background:#fbecef;
-    }
-
-    .demo-note {
-      padding:8px;
-      margin-top:8px;
-      border:1px solid #ead7a0;
-      border-radius:5px;
-      background:#fff9e7;
-      color:#5b4c13;
-      font-size:.75rem;
+    #playTargetButton {
+      background: var(--green);
     }
 
     .notation-stage {
-      position:relative;
-      width:100%;
-      height:350px;
-      overflow:hidden;
-      border:1px solid var(--border);
-      border-radius:7px;
-      background:#fff;
+      position: relative;
+      width: 100%;
+      height: 270px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
     }
 
     #notation {
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:340px;
-      overflow:hidden;
+      width: 100%;
+      height: 260px;
+      overflow: hidden;
     }
 
-    .result-boxes {
-      position:absolute;
-      inset:0;
-      z-index:3;
-      pointer-events:none;
+    .results-panel {
+      padding: 14px;
+    }
+
+    .results-description {
+      color: #555;
+      font-size: 0.78rem;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(16, minmax(24px, 1fr));
+      gap: 8px 5px;
+      margin-top: 14px;
+    }
+
+    .result-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
     }
 
     .result-box {
-      position:absolute;
-      width:24px;
-      height:24px;
-      border:2px solid #b7c0c7;
-      border-radius:4px;
-      background:#fff;
-      color:transparent;
-      font-size:17px;
-      font-weight:bold;
-      line-height:20px;
-      text-align:center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: 2px solid #b7c0c7;
+      border-radius: 4px;
+      background: #ffffff;
+      color: transparent;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 1;
+    }
+
+    .result-number {
+      color: #555;
+      font-size: 0.68rem;
+      font-weight: bold;
     }
 
     .result-box.correct {
-      border-color:var(--green);
-      background:#edf5ef;
-      color:var(--green);
+      border-color: var(--green);
+      background: #edf5ef;
+      color: var(--green);
     }
 
     .result-box.incorrect {
-      border-color:var(--red);
-      background:#fbecef;
-      color:var(--red);
+      border-color: var(--red);
+      background: #fbecef;
+      color: var(--red);
     }
 
     .tuner-layout {
-      display:grid;
-      grid-template-columns:minmax(220px,1fr) 145px;
-      gap:18px;
-      align-items:center;
-      margin-top:8px;
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 145px;
+      gap: 18px;
+      align-items: center;
+      margin-top: 8px;
     }
 
     .tuner-area {
-      min-width:220px;
-      text-align:center;
+      min-width: 220px;
+      text-align: center;
     }
 
     .tuner {
-      position:relative;
-      width:min(260px,100%);
-      height:132px;
-      margin:auto;
-      overflow:hidden;
+      position: relative;
+      width: min(260px, 100%);
+      height: 132px;
+      margin: auto;
+      overflow: hidden;
     }
 
     .tuner-arc {
-      position:absolute;
-      bottom:0;
-      left:50%;
-      width:250px;
-      height:125px;
-      border-radius:250px 250px 0 0;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 250px;
+      height: 125px;
+      border-radius: 250px 250px 0 0;
       background:
         conic-gradient(
           from 270deg at 50% 100%,
@@ -235,134 +234,132 @@
           #b77334 145deg,
           #88293a 180deg
         );
-      transform:translateX(-50%);
+      transform: translateX(-50%);
     }
 
     .tuner-needle {
-      position:absolute;
-      bottom:8px;
-      left:50%;
-      z-index:2;
-      width:4px;
-      height:102px;
-      border-radius:4px;
-      background:var(--navy);
-      transform:translateX(-50%) rotate(0deg);
-      transform-origin:50% 100%;
-      transition:transform .1s linear,background .1s linear;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      z-index: 2;
+      width: 4px;
+      height: 102px;
+      border-radius: 4px;
+      background: var(--navy);
+      transform: translateX(-50%) rotate(0deg);
+      transform-origin: 50% 100%;
+      transition:
+        transform 0.1s linear,
+        background 0.1s linear;
     }
 
     .tuner-center {
-      position:absolute;
-      bottom:3px;
-      left:50%;
-      z-index:3;
-      width:14px;
-      height:14px;
-      border-radius:50%;
-      background:var(--navy);
-      transform:translateX(-50%);
+      position: absolute;
+      bottom: 3px;
+      left: 50%;
+      z-index: 3;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--navy);
+      transform: translateX(-50%);
     }
 
     .tuner-labels {
-      display:flex;
-      justify-content:space-between;
-      width:min(250px,100%);
-      margin:3px auto 0;
-      color:#555;
-      font-size:.75rem;
-      font-weight:bold;
+      display: flex;
+      justify-content: space-between;
+      width: min(250px, 100%);
+      margin: 3px auto 0;
+      color: #555;
+      font-size: 0.75rem;
+      font-weight: bold;
     }
 
     .feedback-box {
-      padding:12px 8px;
-      border:1px solid var(--border);
-      border-radius:8px;
-      background:#f8fafc;
-      text-align:center;
+      padding: 12px 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #f8fafc;
+      text-align: center;
     }
 
     .feedback-label {
-      display:block;
-      margin-bottom:6px;
-      color:#555;
-      font-size:.75rem;
+      display: block;
+      margin-bottom: 6px;
+      color: #555;
+      font-size: 0.75rem;
     }
 
     .feedback-value {
-      display:block;
-      color:var(--navy);
-      font-size:1.25rem;
-      font-weight:bold;
+      display: block;
+      color: var(--navy);
+      font-size: 1.25rem;
+      font-weight: bold;
     }
 
     .graph-explanation {
-      margin:8px 0 4px;
-      color:#555;
-      font-size:.78rem;
+      margin: 8px 0 4px;
+      color: #555;
+      font-size: 0.78rem;
     }
 
     canvas {
-      display:block;
-      width:100%;
-      height:150px;
-      margin-top:6px;
-      border:1px solid var(--border);
-      border-radius:7px;
-      background:#0d1b2a;
+      display: block;
+      width: 100%;
+      height: 150px;
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #0d1b2a;
     }
 
     .help-text {
-      margin-bottom:0;
-      color:#555;
-      font-size:.78rem;
+      margin-bottom: 0;
+      color: #555;
+      font-size: 0.78rem;
     }
 
-    @media (max-width:760px) {
+    @media (max-width: 760px) {
       .main-layout {
-        grid-template-columns:1fr;
+        grid-template-columns: 1fr;
       }
 
       .controls-panel,
       .content-stack {
-        grid-column:1;
+        grid-column: 1;
       }
 
       .controls-panel {
-        order:1;
+        order: 1;
       }
 
       .content-stack {
-        order:2;
+        order: 2;
       }
 
-      .controls {
-        display:grid;
-        grid-template-columns:repeat(2,1fr);
-      }
-
-      .status,
-      .demo-note {
-        grid-column:1/-1;
-      }
-
-      .notation-stage {
-        overflow-x:auto;
+      .result-grid {
+        grid-template-columns: repeat(8, minmax(24px, 1fr));
       }
     }
 
-    @media (max-width:560px) {
-      .controls {
-        display:flex;
-      }
-
+    @media (max-width: 560px) {
       .tuner-layout {
-        grid-template-columns:1fr;
+        grid-template-columns: 1fr;
       }
 
       .feedback-box {
-        width:145px;
-        margin:auto;
+        width: 145px;
+        margin: auto;
+      }
+
+      .result-grid {
+        grid-template-columns: repeat(8, minmax(22px, 1fr));
+        gap: 8px 2px;
+      }
+
+      .result-box {
+        width: 25px;
+        height: 25px;
       }
     }
   </style>
@@ -383,18 +380,8 @@
         <div class="controls">
           <button id="startButton">Start Microphone</button>
           <button id="stopButton" disabled>Stop</button>
-          <button id="demoButton">Start Demo Mode</button>
           <button id="playMelodyButton">Play Melody</button>
           <button id="playTargetButton">Play Target Tone</button>
-          <button id="clearButton">Clear Graph</button>
-
-          <div id="status" class="status" role="status" aria-live="polite">
-            Use Demo Mode to test the exercise.
-          </div>
-
-          <div class="demo-note">
-            Reference tones are generated in the browser. No audio is saved.
-          </div>
         </div>
       </section>
 
@@ -408,9 +395,18 @@
           </p>
 
           <div class="notation-stage">
-            <div id="resultBoxes" class="result-boxes"></div>
             <div id="notation" aria-label="Treble clef sight-reading exercise"></div>
           </div>
+        </section>
+
+        <section class="panel results-panel">
+          <h2>Pitch Results</h2>
+
+          <p class="results-description">
+            Each numbered box corresponds to one pitch in the exercise.
+          </p>
+
+          <div id="resultGrid" class="result-grid"></div>
         </section>
 
         <section class="panel">
@@ -455,16 +451,16 @@
     const VF = window.VexFlow;
 
     const PITCHES = [
-      { key:"c/4", frequency:261.63 },
-      { key:"d/4", frequency:293.66 },
-      { key:"e/4", frequency:329.63 },
-      { key:"f/4", frequency:349.23 },
-      { key:"g/4", frequency:392.00 },
-      { key:"a/4", frequency:440.00 },
-      { key:"b/4", frequency:493.88 },
-      { key:"c/5", frequency:523.25 },
-      { key:"d/5", frequency:587.33 },
-      { key:"e/5", frequency:659.25 }
+      { key: "c/4", frequency: 261.63 },
+      { key: "d/4", frequency: 293.66 },
+      { key: "e/4", frequency: 329.63 },
+      { key: "f/4", frequency: 349.23 },
+      { key: "g/4", frequency: 392.00 },
+      { key: "a/4", frequency: 440.00 },
+      { key: "b/4", frequency: 493.88 },
+      { key: "c/5", frequency: 523.25 },
+      { key: "d/5", frequency: 587.33 },
+      { key: "e/5", frequency: 659.25 }
     ];
 
     const TOTAL_NOTES = 32;
@@ -478,7 +474,6 @@
     let noteSamples = [];
     let noteResults = [];
     let pitchHistory = [];
-    let sharedNoteXPositions = [];
 
     let running = false;
     let currentNote = 0;
@@ -495,35 +490,25 @@
 
     const startButton = document.getElementById("startButton");
     const stopButton = document.getElementById("stopButton");
-    const demoButton = document.getElementById("demoButton");
     const playMelodyButton = document.getElementById("playMelodyButton");
     const playTargetButton = document.getElementById("playTargetButton");
-    const clearButton = document.getElementById("clearButton");
 
-    const statusBox = document.getElementById("status");
+    const resultGrid = document.getElementById("resultGrid");
     const feedbackDisplay = document.getElementById("feedback");
     const tunerNeedle = document.getElementById("tunerNeedle");
     const canvas = document.getElementById("pitchCanvas");
     const canvasContext = canvas.getContext("2d");
     const notationContainer = document.getElementById("notation");
-    const resultBoxes = document.getElementById("resultBoxes");
 
-    startButton.onclick = () => startPractice("microphone");
+    startButton.onclick = startPractice;
     stopButton.onclick = () => stopPractice(true);
-    demoButton.onclick = () => startPractice("demo");
     playMelodyButton.onclick = playMelody;
     playTargetButton.onclick = playTargetTone;
-    clearButton.onclick = clearDisplay;
 
     window.addEventListener("resize", () => {
       resizeCanvas();
       renderNotation();
     });
-
-    function setStatus(message, type = "") {
-      statusBox.textContent = message;
-      statusBox.className = "status " + type;
-    }
 
     function generateMelody() {
       melody = [];
@@ -537,7 +522,7 @@
 
         if (i === 0) {
           previousIndex = 0;
-        } else if (possibleSteps.length) {
+        } else if (possibleSteps.length > 0) {
           previousIndex =
             possibleSteps[
               Math.floor(Math.random() * possibleSteps.length)
@@ -548,58 +533,28 @@
       }
     }
 
-    function createResultBoxes() {
-      resultBoxes.innerHTML = "";
+    function createResultGrid() {
+      resultGrid.innerHTML = "";
 
       for (let i = 0; i < TOTAL_NOTES; i++) {
-        const box = document.createElement("div");
+        const item = document.createElement("div");
+        item.className = "result-item";
 
+        const box = document.createElement("div");
         box.className = "result-box";
         box.id = "result-" + i;
         box.setAttribute(
           "aria-label",
-          "Note " + (i + 1) + " not yet evaluated"
+          "Pitch " + (i + 1) + " not yet evaluated"
         );
 
-        resultBoxes.appendChild(box);
-      }
-    }
+        const number = document.createElement("div");
+        number.className = "result-number";
+        number.textContent = i + 1;
 
-    function getActualNoteX(note, fallbackX) {
-      if (note && typeof note.getAbsoluteX === "function") {
-        const actualX = note.getAbsoluteX();
-
-        if (Number.isFinite(actualX)) {
-          return actualX;
-        }
-      }
-
-      return fallbackX;
-    }
-
-    function positionResultBoxes() {
-      const boxSize = 24;
-      const boxGap = 5;
-      const staffTop = 29;
-
-      for (let index = 0; index < TOTAL_NOTES; index++) {
-        const box = document.getElementById("result-" + index);
-
-        if (!box) continue;
-
-        const horizontalIndex = index % 16;
-        const row = Math.floor(index / 16);
-        const x = sharedNoteXPositions[horizontalIndex];
-
-        if (!Number.isFinite(x)) continue;
-
-        box.style.left =
-          Math.round(x - boxSize / 2) + "px";
-
-        box.style.top =
-          Math.round(
-            staffTop - boxSize - boxGap + row * 135
-          ) + "px";
+        item.appendChild(box);
+        item.appendChild(number);
+        resultGrid.appendChild(item);
       }
     }
 
@@ -613,11 +568,19 @@
       if (result === "correct") {
         box.classList.add("correct");
         box.textContent = "✓";
+        box.setAttribute(
+          "aria-label",
+          "Pitch " + (index + 1) + " correct"
+        );
       }
 
       if (result === "incorrect") {
         box.classList.add("incorrect");
         box.textContent = "×";
+        box.setAttribute(
+          "aria-label",
+          "Pitch " + (index + 1) + " incorrect"
+        );
       }
     }
 
@@ -637,7 +600,6 @@
       if (!melody.length) return;
 
       notationContainer.innerHTML = "";
-      sharedNoteXPositions = [];
 
       const width = Math.max(notationContainer.clientWidth, 720);
 
@@ -646,7 +608,7 @@
         VF.Renderer.Backends.SVG
       );
 
-      renderer.resize(width, 340);
+      renderer.resize(width, 260);
 
       const context = renderer.getContext();
 
@@ -663,7 +625,7 @@
         const column = measure % 4;
 
         const x = measureStart + column * measureWidth;
-        const y = 29 + row * 135;
+        const y = 35 + row * 110;
 
         if (measure === 0) {
           new VF.Stave(
@@ -710,10 +672,6 @@
             duration: "q"
           });
 
-          /*
-            Explicitly apply the stem direction after creation.
-            This is the important correction.
-          */
           staveNote.setStemDirection(stemDirection);
 
           let color = "#000000";
@@ -746,22 +704,7 @@
           .format([voice], measureWidth - 24);
 
         voice.draw(context, stave);
-
-        if (row === 0) {
-          notes.forEach((note, noteOffset) => {
-            const fallbackX =
-              x +
-              measureWidth *
-                ((noteOffset + 0.5) / NOTES_PER_MEASURE);
-
-            sharedNoteXPositions[
-              measure * NOTES_PER_MEASURE + noteOffset
-            ] = getActualNoteX(note, fallbackX);
-          });
-        }
       }
-
-      positionResultBoxes();
     }
 
     function getToneContext() {
@@ -799,10 +742,13 @@
       oscillator.type = "triangle";
       oscillator.frequency.value = frequency;
 
-      gain.gain.setValueAtTime(.0001, start);
-      gain.gain.exponentialRampToValueAtTime(.16, start + .03);
+      gain.gain.setValueAtTime(0.0001, start);
       gain.gain.exponentialRampToValueAtTime(
-        .0001,
+        0.16,
+        start + 0.03
+      );
+      gain.gain.exponentialRampToValueAtTime(
+        0.0001,
         start + duration
       );
 
@@ -810,7 +756,7 @@
       gain.connect(context.destination);
 
       oscillator.start(start);
-      oscillator.stop(start + duration + .05);
+      oscillator.stop(start + duration + 0.05);
 
       toneNodes.push(oscillator);
     }
@@ -825,21 +771,21 @@
       oscillator.type = "square";
       oscillator.frequency.value = accent ? 1000 : 700;
 
-      gain.gain.setValueAtTime(.0001, start);
+      gain.gain.setValueAtTime(0.0001, start);
       gain.gain.exponentialRampToValueAtTime(
-        accent ? .18 : .11,
-        start + .005
+        accent ? 0.18 : 0.11,
+        start + 0.005
       );
       gain.gain.exponentialRampToValueAtTime(
-        .0001,
-        start + .08
+        0.0001,
+        start + 0.08
       );
 
       oscillator.connect(gain);
       gain.connect(context.destination);
 
       oscillator.start(start);
-      oscillator.stop(start + .1);
+      oscillator.stop(start + 0.1);
     }
 
     function playMelody() {
@@ -848,17 +794,15 @@
       const context = getToneContext();
       context.resume();
 
-      const start = context.currentTime + .05;
+      const start = context.currentTime + 0.05;
 
       melody.forEach((note, index) => {
         playFrequency(
           note.frequency,
-          .65,
-          start + index * .78
+          0.65,
+          start + index * 0.78
         );
       });
-
-      setStatus("Playing the written melody.", "success");
     }
 
     function playTargetTone() {
@@ -871,16 +815,14 @@
 
       playFrequency(
         note.frequency,
-        .9,
-        context.currentTime + .05
+        0.9,
+        context.currentTime + 0.05
       );
-
-      setStatus("Playing the current target tone.", "success");
     }
 
     function updateTuner(cents) {
       const limited = Math.max(-100, Math.min(100, cents));
-      const angle = limited * .45;
+      const angle = limited * 0.45;
 
       tunerNeedle.style.transform =
         "translateX(-50%) rotate(" + angle + "deg)";
@@ -922,7 +864,7 @@
 
       rms = Math.sqrt(rms / buffer.length);
 
-      if (rms < .01) return -1;
+      if (rms < 0.01) return -1;
 
       let bestOffset = -1;
       let bestCorrelation = 0;
@@ -949,7 +891,7 @@
         }
       }
 
-      if (bestOffset === -1 || bestCorrelation < .01) {
+      if (bestOffset === -1 || bestCorrelation < 0.01) {
         return -1;
       }
 
@@ -999,7 +941,9 @@
         !navigator.mediaDevices ||
         !navigator.mediaDevices.getUserMedia
       ) {
-        throw new Error("Microphone access is not supported.");
+        throw new Error(
+          "Microphone access is not supported."
+        );
       }
 
       microphoneStream =
@@ -1020,7 +964,7 @@
 
       analyser = audioContext.createAnalyser();
       analyser.fftSize = 4096;
-      analyser.smoothingTimeConstant = .2;
+      analyser.smoothingTimeConstant = 0.2;
 
       microphoneSource =
         audioContext.createMediaStreamSource(
@@ -1030,7 +974,7 @@
       microphoneSource.connect(analyser);
     }
 
-    function startPractice(mode) {
+    function startPractice() {
       if (running) return;
 
       running = true;
@@ -1039,32 +983,24 @@
       noteResults = [];
       pitchHistory = [];
 
-      createResultBoxes();
+      createResultGrid();
       renderNotation();
       resizeCanvas();
 
       startButton.disabled = true;
       stopButton.disabled = false;
-      demoButton.disabled = true;
 
-      const microphoneReady =
-        mode === "microphone"
-          ? prepareMicrophone()
-          : Promise.resolve();
-
-      microphoneReady
+      prepareMicrophone()
         .then(() => {
           if (!running) return;
 
           const context = getToneContext();
           context.resume();
 
-          setStatus("Playing the starting pitch.", "success");
-
           playFrequency(
             melody[0].frequency,
-            .9,
-            context.currentTime + .05
+            0.9,
+            context.currentTime + 0.05
           );
 
           setTimeout(() => {
@@ -1074,9 +1010,7 @@
 
             const countInBeat = () => {
               beat++;
-
               playClick(beat === 1);
-              setStatus("Count-in: " + beat, "success");
 
               if (beat >= 4) {
                 clearInterval(countInTimer);
@@ -1085,18 +1019,7 @@
                 setTimeout(() => {
                   if (!running) return;
 
-                  setStatus(
-                    mode === "microphone"
-                      ? "Sing the highlighted notes."
-                      : "Demo practice is running.",
-                    "success"
-                  );
-
-                  if (mode === "microphone") {
-                    beginMicrophoneLoop();
-                  } else {
-                    beginDemoLoop();
-                  }
+                  beginMicrophoneLoop();
 
                   noteTimer = setInterval(() => {
                     finalizeCurrentNote();
@@ -1116,6 +1039,7 @@
             };
 
             countInBeat();
+
             countInTimer = setInterval(
               countInBeat,
               COUNT_IN_TIME
@@ -1124,12 +1048,6 @@
         })
         .catch(error => {
           console.error(error);
-
-          setStatus(
-            "Microphone access was unavailable. Demo Mode is still available.",
-            "error"
-          );
-
           stopPractice(false);
         });
     }
@@ -1173,54 +1091,10 @@
       analyze();
     }
 
-    function beginDemoLoop() {
-      const demoOffsets = [
-        -14, 8, -5, 12,
-        22, -9, 5, -16,
-        -7, 14, -4, 9,
-        28, -12, 4, -8,
-        -10, 6, -3, 11,
-        18, -6, 7, -13,
-        -5, 10, -8, 15,
-        25, -9, 4, -6
-      ];
-
-      let sampleIndex = 0;
-
-      const demoFrame = () => {
-        if (!running || currentNote >= TOTAL_NOTES) {
-          return;
-        }
-
-        const targetNote = melody[currentNote];
-        const cents =
-          demoOffsets[sampleIndex % demoOffsets.length];
-
-        const frequency =
-          targetNote.frequency *
-          Math.pow(2, cents / 1200);
-
-        addPitchSample(
-          cents,
-          frequency,
-          targetNote
-        );
-
-        sampleIndex++;
-        setTimeout(demoFrame, 90);
-      };
-
-      demoFrame();
-    }
-
     function finishPractice() {
       if (!running) return;
 
       finalizeCurrentNote();
-
-      const correctCount = noteResults.filter(
-        result => result === "correct"
-      ).length;
 
       stopPractice(false);
 
@@ -1229,18 +1103,9 @@
 
       feedbackDisplay.textContent = "Complete";
       updateTuner(0);
-
-      setStatus(
-        "Practice complete: " +
-          correctCount +
-          " of " +
-          TOTAL_NOTES +
-          " notes were within ±30 cents.",
-        "success"
-      );
     }
 
-    function stopPractice(showStatus = true) {
+    function stopPractice() {
       running = false;
 
       if (countInTimer) {
@@ -1282,33 +1147,6 @@
 
       startButton.disabled = false;
       stopButton.disabled = true;
-      demoButton.disabled = false;
-
-      if (showStatus) {
-        setStatus(
-          "Practice stopped. Your pitch history remains visible."
-        );
-      }
-    }
-
-    function clearDisplay() {
-      stopPractice(false);
-
-      noteSamples = [];
-      noteResults = [];
-      pitchHistory = [];
-      currentNote = 0;
-
-      createResultBoxes();
-      renderNotation();
-
-      feedbackDisplay.textContent = "—";
-      updateTuner(0);
-      drawPitchHistory();
-
-      setStatus(
-        "Display cleared. Use Demo Mode to test the exercise."
-      );
     }
 
     function drawGraphLine(y, color, width) {
@@ -1352,10 +1190,10 @@
       canvasContext.fillRect(0, 0, width, height);
 
       drawGraphLine(center, "#496450", 2);
-      drawGraphLine(height * .25, "#526579", 1);
-      drawGraphLine(height * .75, "#526579", 1);
+      drawGraphLine(height * 0.25, "#526579", 1);
+      drawGraphLine(height * 0.75, "#526579", 1);
 
-      canvasContext.fillStyle = "#fff";
+      canvasContext.fillStyle = "#ffffff";
       canvasContext.font = "10px Arial";
       canvasContext.fillText("+100", 8, 16);
       canvasContext.fillText("Target", 8, center - 6);
@@ -1399,7 +1237,7 @@
     }
 
     generateMelody();
-    createResultBoxes();
+    createResultGrid();
     prepareNotation();
     resizeCanvas();
   </script>
