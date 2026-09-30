@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Choir Pitch Feedback</title>
+  <title>Sight Reading Accuracy Test</title>
 
   <script src="https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/cjs/vexflow-core.js"></script>
 
   <style>
     :root {
-      --navy: #042f5f;
+      --black: #111111;
       --gold: #d1b43c;
-      --green: #496450;
-      --red: #88293a;
-      --border: #c9d3dc;
+      --grey: #777777;
+      --light-grey: #eeeeee;
+      --border: #bdbdbd;
+      --white: #ffffff;
     }
 
     * {
@@ -22,8 +23,8 @@
 
     body {
       margin: 0;
-      background: #ffffff;
-      color: #333;
+      background: var(--light-grey);
+      color: var(--black);
       font-family: Arial, sans-serif;
       line-height: 1.4;
     }
@@ -36,7 +37,7 @@
 
     h1,
     h2 {
-      color: var(--navy);
+      color: var(--black);
       line-height: 1.15;
     }
 
@@ -73,10 +74,10 @@
     .panel {
       padding: 14px;
       margin-bottom: 12px;
-      background: #fff;
+      background: var(--white);
       border: 1px solid var(--border);
       border-radius: 10px;
-      box-shadow: 0 1px 4px #0000000d;
+      box-shadow: 0 1px 4px #00000018;
     }
 
     .controls {
@@ -89,15 +90,22 @@
       width: 100%;
       min-height: 36px;
       padding: 8px 10px;
-      border: 0;
+      border: 1px solid var(--black);
       border-radius: 7px;
-      color: #fff;
+      background: var(--gold);
+      color: var(--black);
       font-size: 0.82rem;
       font-weight: bold;
       cursor: pointer;
     }
 
-    button:focus {
+    button:hover {
+      background: #e0c64f;
+    }
+
+    button:focus,
+    select:focus,
+    input:focus {
       outline: 3px solid var(--gold);
       outline-offset: 2px;
     }
@@ -107,18 +115,45 @@
       cursor: not-allowed;
     }
 
-    #startButton,
-    #newMelodyButton {
-      background: var(--navy);
-    }
-
     #stopButton {
-      background: var(--red);
+      background: var(--grey);
+      color: var(--white);
+      border-color: var(--grey);
     }
 
-    #playMelodyButton,
-    #startingPitchButton {
-      background: var(--green);
+    .option-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 0 0;
+      border-top: 1px solid var(--border);
+      color: var(--black);
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
+
+    .option-row select {
+      min-height: 30px;
+      padding: 4px 6px;
+      border: 1px solid var(--grey);
+      border-radius: 5px;
+      background: var(--white);
+      color: var(--black);
+      font-size: 0.8rem;
+    }
+
+    .metronome-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+    }
+
+    .metronome-label input {
+      width: 17px;
+      height: 17px;
+      accent-color: var(--gold);
     }
 
     .notation-stage {
@@ -126,9 +161,9 @@
       width: 100%;
       height: 270px;
       overflow: hidden;
-      border: 1px solid var(--border);
+      border: 1px solid #777777;
       border-radius: 7px;
-      background: #fff;
+      background: #ffffff;
     }
 
     #notation {
@@ -138,7 +173,7 @@
     }
 
     .results-description {
-      color: #555;
+      color: #555555;
       font-size: 0.78rem;
     }
 
@@ -162,7 +197,7 @@
       justify-content: center;
       width: 28px;
       height: 28px;
-      border: 2px solid #b7c0c7;
+      border: 2px solid #999999;
       border-radius: 4px;
       background: #ffffff;
       color: transparent;
@@ -172,21 +207,21 @@
     }
 
     .result-number {
-      color: #555;
+      color: #555555;
       font-size: 0.68rem;
       font-weight: bold;
     }
 
     .result-box.correct {
-      border-color: var(--green);
-      background: #edf5ef;
-      color: var(--green);
+      border-color: var(--gold);
+      background: #fff8d8;
+      color: var(--black);
     }
 
     .result-box.incorrect {
-      border-color: var(--red);
-      background: #fbecef;
-      color: var(--red);
+      border-color: var(--black);
+      background: #dddddd;
+      color: var(--black);
     }
 
     .tuner-panel {
@@ -211,14 +246,14 @@
       background:
         conic-gradient(
           from 270deg at 50% 100%,
-          #88293a 0deg,
-          #b77334 35deg,
-          #d1b43c 55deg,
-          #496450 82deg,
-          #496450 98deg,
-          #d1b43c 125deg,
-          #b77334 145deg,
-          #88293a 180deg
+          #555555 0deg,
+          #888888 45deg,
+          #bdbdbd 65deg,
+          #d1b43c 82deg,
+          #d1b43c 98deg,
+          #bdbdbd 115deg,
+          #888888 135deg,
+          #555555 180deg
         );
       transform: translateX(-50%);
     }
@@ -231,12 +266,10 @@
       width: 3px;
       height: 72px;
       border-radius: 4px;
-      background: var(--navy);
+      background: var(--black);
       transform: translateX(-50%) rotate(0deg);
       transform-origin: 50% 100%;
-      transition:
-        transform 0.1s linear,
-        background 0.1s linear;
+      transition: transform 0.1s linear;
     }
 
     .tuner-center {
@@ -247,7 +280,7 @@
       width: 11px;
       height: 11px;
       border-radius: 50%;
-      background: var(--navy);
+      background: var(--black);
       transform: translateX(-50%);
     }
 
@@ -256,7 +289,7 @@
       justify-content: space-between;
       width: 175px;
       margin: 3px auto 0;
-      color: #555;
+      color: #555555;
       font-size: 0.68rem;
       font-weight: bold;
     }
@@ -300,10 +333,10 @@
 
 <body>
   <main>
-    <h1>Choir Pitch Feedback</h1>
+    <h1>Sight Reading Accuracy Test</h1>
 
     <p>
-      Follow the written melody, listen to the reference tones, and receive feedback about pitch accuracy.
+      Follow the written melody and receive feedback about your pitch accuracy.
     </p>
 
     <div class="main-layout">
@@ -312,11 +345,31 @@
           <h2>Controls</h2>
 
           <div class="controls">
-            <button id="startButton">Start Microphone</button>
-            <button id="stopButton" disabled>Stop</button>
-            <button id="playMelodyButton">Play Melody</button>
             <button id="startingPitchButton">Starting Pitch</button>
+            <button id="startButton">Start Microphone</button>
+            <button id="playMelodyButton">Play Melody</button>
+            <button id="stopButton" disabled>Stop</button>
             <button id="newMelodyButton">New Melody</button>
+
+            <div class="option-row">
+              <label for="tempoSelect">Tempo</label>
+
+              <select id="tempoSelect">
+                <option value="60">60 BPM</option>
+                <option value="72" selected>72 BPM</option>
+                <option value="84">84 BPM</option>
+                <option value="96">96 BPM</option>
+                <option value="108">108 BPM</option>
+                <option value="120">120 BPM</option>
+              </select>
+            </div>
+
+            <div class="option-row">
+              <label class="metronome-label" for="metronomeToggle">
+                <input type="checkbox" id="metronomeToggle">
+                Metronome
+              </label>
+            </div>
           </div>
         </section>
 
@@ -378,8 +431,7 @@
     const TOTAL_NOTES = 32;
     const NOTES_PER_MEASURE = 4;
     const TOTAL_MEASURES = 8;
-    const NOTE_TIME = 900;
-    const COUNT_IN_TIME = 650;
+    const COUNT_IN_BEATS = 4;
     const ACCURACY_MARGIN = 30;
 
     let melody = [];
@@ -399,23 +451,50 @@
     let noteTimer = null;
     let toneNodes = [];
 
-    const startButton = document.getElementById("startButton");
-    const stopButton = document.getElementById("stopButton");
-    const playMelodyButton = document.getElementById("playMelodyButton");
-    const startingPitchButton = document.getElementById("startingPitchButton");
-    const newMelodyButton = document.getElementById("newMelodyButton");
+    const startingPitchButton =
+      document.getElementById("startingPitchButton");
 
-    const resultGrid = document.getElementById("resultGrid");
-    const tunerNeedle = document.getElementById("tunerNeedle");
-    const notationContainer = document.getElementById("notation");
+    const startButton =
+      document.getElementById("startButton");
 
-    startButton.onclick = startPractice;
-    stopButton.onclick = () => stopPractice();
-    playMelodyButton.onclick = playMelody;
+    const playMelodyButton =
+      document.getElementById("playMelodyButton");
+
+    const stopButton =
+      document.getElementById("stopButton");
+
+    const newMelodyButton =
+      document.getElementById("newMelodyButton");
+
+    const tempoSelect =
+      document.getElementById("tempoSelect");
+
+    const metronomeToggle =
+      document.getElementById("metronomeToggle");
+
+    const resultGrid =
+      document.getElementById("resultGrid");
+
+    const tunerNeedle =
+      document.getElementById("tunerNeedle");
+
+    const notationContainer =
+      document.getElementById("notation");
+
     startingPitchButton.onclick = playStartingPitch;
+    startButton.onclick = startPractice;
+    playMelodyButton.onclick = playMelody;
+    stopButton.onclick = stopPractice;
     newMelodyButton.onclick = createNewMelody;
 
     window.addEventListener("resize", renderNotation);
+
+    function getTempoMilliseconds() {
+      const beatsPerMinute =
+        Number(tempoSelect.value);
+
+      return 60000 / beatsPerMinute;
+    }
 
     function generateMelody() {
       melody = [];
@@ -462,7 +541,8 @@
     }
 
     function updateResultBox(index, result) {
-      const box = document.getElementById("result-" + index);
+      const box =
+        document.getElementById("result-" + index);
 
       if (!box) return;
 
@@ -496,7 +576,8 @@
 
       notationContainer.innerHTML = "";
 
-      const width = Math.max(notationContainer.clientWidth, 720);
+      const width =
+        Math.max(notationContainer.clientWidth, 720);
 
       const renderer = new VF.Renderer(
         notationContainer,
@@ -515,12 +596,19 @@
       const measureWidth =
         (width - measureStart - rightMargin) / 4;
 
-      for (let measure = 0; measure < TOTAL_MEASURES; measure++) {
+      for (
+        let measure = 0;
+        measure < TOTAL_MEASURES;
+        measure++
+      ) {
         const row = Math.floor(measure / 4);
         const column = measure % 4;
 
-        const x = measureStart + column * measureWidth;
-        const y = 35 + row * 110;
+        const x =
+          measureStart + column * measureWidth;
+
+        const y =
+          35 + row * 110;
 
         if (measure === 0) {
           new VF.Stave(
@@ -553,39 +641,39 @@
           measure * NOTES_PER_MEASURE + NOTES_PER_MEASURE
         );
 
-        const notes = notesForMeasure.map((note, noteOffset) => {
-          const index =
-            measure * NOTES_PER_MEASURE + noteOffset;
+        const notes =
+          notesForMeasure.map((note, noteOffset) => {
+            const index =
+              measure * NOTES_PER_MEASURE + noteOffset;
 
-          const stemDirection =
-            ["b/4", "c/5", "d/5", "e/5"].includes(note.key)
-              ? VF.Stem.DOWN
-              : VF.Stem.UP;
+            const stemDirection =
+              ["b/4", "c/5", "d/5", "e/5"]
+                .includes(note.key)
+                ? VF.Stem.DOWN
+                : VF.Stem.UP;
 
-          const staveNote = new VF.StaveNote({
-            keys: [note.key],
-            duration: "q"
+            const staveNote = new VF.StaveNote({
+              keys: [note.key],
+              duration: "q"
+            });
+
+            staveNote.setStemDirection(
+              stemDirection
+            );
+
+            let color = "#000000";
+
+            if (index === currentNote && running) {
+              color = "#d1b43c";
+            }
+
+            staveNote.setStyle({
+              fillStyle: color,
+              strokeStyle: color
+            });
+
+            return staveNote;
           });
-
-          staveNote.setStemDirection(stemDirection);
-
-          let color = "#000000";
-
-          if (index === currentNote && running) {
-            color = "#d1b43c";
-          } else if (noteResults[index] === "correct") {
-            color = "#496450";
-          } else if (noteResults[index] === "incorrect") {
-            color = "#88293a";
-          }
-
-          staveNote.setStyle({
-            fillStyle: color,
-            strokeStyle: color
-          });
-
-          return staveNote;
-        });
 
         const voice = new VF.Voice({
           numBeats: 4,
@@ -629,19 +717,28 @@
       startTime = null
     ) {
       const context = getToneContext();
-      const start = startTime || context.currentTime;
+      const start =
+        startTime || context.currentTime;
 
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
+      const oscillator =
+        context.createOscillator();
+
+      const gain =
+        context.createGain();
 
       oscillator.type = "triangle";
       oscillator.frequency.value = frequency;
 
-      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.setValueAtTime(
+        0.0001,
+        start
+      );
+
       gain.gain.exponentialRampToValueAtTime(
         0.16,
         start + 0.03
       );
+
       gain.gain.exponentialRampToValueAtTime(
         0.0001,
         start + duration
@@ -660,17 +757,26 @@
       const context = getToneContext();
       const start = context.currentTime;
 
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
+      const oscillator =
+        context.createOscillator();
+
+      const gain =
+        context.createGain();
 
       oscillator.type = "square";
-      oscillator.frequency.value = accent ? 1000 : 700;
+      oscillator.frequency.value =
+        accent ? 1000 : 700;
 
-      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.setValueAtTime(
+        0.0001,
+        start
+      );
+
       gain.gain.exponentialRampToValueAtTime(
         accent ? 0.18 : 0.11,
         start + 0.005
       );
+
       gain.gain.exponentialRampToValueAtTime(
         0.0001,
         start + 0.08
@@ -689,13 +795,17 @@
       const context = getToneContext();
       context.resume();
 
-      const start = context.currentTime + 0.05;
+      const start =
+        context.currentTime + 0.05;
+
+      const beatDuration =
+        getTempoMilliseconds() / 1000;
 
       melody.forEach((note, index) => {
         playFrequency(
           note.frequency,
-          0.65,
-          start + index * 0.78
+          beatDuration * 0.8,
+          start + index * beatDuration
         );
       });
     }
@@ -714,40 +824,55 @@
     }
 
     function updateTuner(cents) {
-      const limited = Math.max(-100, Math.min(100, cents));
+      const limited =
+        Math.max(-100, Math.min(100, cents));
+
       const angle = limited * 0.45;
 
       tunerNeedle.style.transform =
-        "translateX(-50%) rotate(" + angle + "deg)";
+        "translateX(-50%) rotate(" +
+        angle +
+        "deg)";
 
       tunerNeedle.style.background =
         Math.abs(cents) <= 20
-          ? "#496450"
-          : cents < 0
-            ? "#b77334"
-            : "#88293a";
+          ? "#d1b43c"
+          : "#111111";
     }
 
-    function calculateCentsDifference(detected, target) {
-      return 1200 * Math.log2(detected / target);
+    function calculateCentsDifference(
+      detected,
+      target
+    ) {
+      return 1200 * Math.log2(
+        detected / target
+      );
     }
 
-    function autoCorrelate(buffer, sampleRate) {
+    function autoCorrelate(
+      buffer,
+      sampleRate
+    ) {
       let rms = 0;
 
       for (let i = 0; i < buffer.length; i++) {
         rms += buffer[i] * buffer[i];
       }
 
-      rms = Math.sqrt(rms / buffer.length);
+      rms = Math.sqrt(
+        rms / buffer.length
+      );
 
       if (rms < 0.01) return -1;
 
       let bestOffset = -1;
       let bestCorrelation = 0;
 
-      const minOffset = Math.floor(sampleRate / 1000);
-      const maxOffset = Math.floor(sampleRate / 80);
+      const minOffset =
+        Math.floor(sampleRate / 1000);
+
+      const maxOffset =
+        Math.floor(sampleRate / 80);
 
       for (
         let offset = minOffset;
@@ -756,11 +881,18 @@
       ) {
         let correlation = 0;
 
-        for (let i = 0; i < buffer.length - offset; i++) {
-          correlation += buffer[i] * buffer[i + offset];
+        for (
+          let i = 0;
+          i < buffer.length - offset;
+          i++
+        ) {
+          correlation +=
+            buffer[i] *
+            buffer[i + offset];
         }
 
-        correlation /= buffer.length - offset;
+        correlation /=
+          buffer.length - offset;
 
         if (correlation > bestCorrelation) {
           bestCorrelation = correlation;
@@ -768,18 +900,25 @@
         }
       }
 
-      if (bestOffset === -1 || bestCorrelation < 0.01) {
+      if (
+        bestOffset === -1 ||
+        bestCorrelation < 0.01
+      ) {
         return -1;
       }
 
       return sampleRate / bestOffset;
     }
 
-    function addPitchSample(frequency, targetNote) {
-      const cents = calculateCentsDifference(
-        frequency,
-        targetNote.frequency
-      );
+    function addPitchSample(
+      frequency,
+      targetNote
+    ) {
+      const cents =
+        calculateCentsDifference(
+          frequency,
+          targetNote.frequency
+        );
 
       updateTuner(cents);
       noteSamples.push(cents);
@@ -787,14 +926,21 @@
 
     function finalizeCurrentNote() {
       if (!noteSamples.length) {
-        noteResults[currentNote] = "incorrect";
-        updateResultBox(currentNote, "incorrect");
+        noteResults[currentNote] =
+          "incorrect";
+
+        updateResultBox(
+          currentNote,
+          "incorrect"
+        );
+
         return;
       }
 
       const averageAbsoluteCents =
         noteSamples.reduce(
-          (sum, value) => sum + Math.abs(value),
+          (sum, value) =>
+            sum + Math.abs(value),
           0
         ) / noteSamples.length;
 
@@ -804,7 +950,11 @@
           : "incorrect";
 
       noteResults[currentNote] = result;
-      updateResultBox(currentNote, result);
+
+      updateResultBox(
+        currentNote,
+        result
+      );
     }
 
     async function prepareMicrophone() {
@@ -833,7 +983,9 @@
 
       await audioContext.resume();
 
-      analyser = audioContext.createAnalyser();
+      analyser =
+        audioContext.createAnalyser();
+
       analyser.fftSize = 4096;
       analyser.smoothingTimeConstant = 0.2;
 
@@ -848,21 +1000,28 @@
     function beginMicrophoneLoop() {
       if (!analyser) return;
 
-      const buffer = new Float32Array(
-        analyser.fftSize
-      );
+      const buffer =
+        new Float32Array(
+          analyser.fftSize
+        );
 
       const analyze = () => {
         if (!running || !analyser) return;
 
-        analyser.getFloatTimeDomainData(buffer);
-
-        const frequency = autoCorrelate(
-          buffer,
-          audioContext.sampleRate
+        analyser.getFloatTimeDomainData(
+          buffer
         );
 
-        if (frequency >= 70 && frequency <= 1000) {
+        const frequency =
+          autoCorrelate(
+            buffer,
+            audioContext.sampleRate
+          );
+
+        if (
+          frequency >= 70 &&
+          frequency <= 1000
+        ) {
           addPitchSample(
             frequency,
             melody[currentNote]
@@ -912,7 +1071,7 @@
               beat++;
               playClick(beat === 1);
 
-              if (beat >= 4) {
+              if (beat >= COUNT_IN_BEATS) {
                 clearInterval(countInTimer);
                 countInTimer = null;
 
@@ -921,7 +1080,18 @@
 
                   beginMicrophoneLoop();
 
+                  const beatDuration =
+                    getTempoMilliseconds();
+
+                  if (metronomeToggle.checked) {
+                    playClick(false);
+                  }
+
                   noteTimer = setInterval(() => {
+                    if (metronomeToggle.checked) {
+                      playClick(false);
+                    }
+
                     finalizeCurrentNote();
 
                     currentNote++;
@@ -933,7 +1103,7 @@
 
                     noteSamples = [];
                     renderNotation();
-                  }, NOTE_TIME);
+                  }, beatDuration);
                 }, 150);
               }
             };
@@ -942,7 +1112,7 @@
 
             countInTimer = setInterval(
               countInBeat,
-              COUNT_IN_TIME
+              getTempoMilliseconds()
             );
           }, 1100);
         })
@@ -977,7 +1147,10 @@
       }
 
       if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+        cancelAnimationFrame(
+          animationFrameId
+        );
+
         animationFrameId = null;
       }
 
@@ -1011,6 +1184,7 @@
       stopPractice();
 
       generateMelody();
+
       currentNote = 0;
       noteSamples = [];
       noteResults = [];
