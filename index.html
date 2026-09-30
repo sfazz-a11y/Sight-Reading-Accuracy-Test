@@ -10,7 +10,6 @@
   <style>
     :root {
       --navy: #042f5f;
-      --blue: #82bee6;
       --gold: #d1b43c;
       --green: #496450;
       --red: #88293a;
@@ -62,9 +61,8 @@
       align-items: start;
     }
 
-    .controls-panel {
+    .left-column {
       grid-column: 1;
-      padding: 12px;
     }
 
     .content-stack {
@@ -109,7 +107,8 @@
       cursor: not-allowed;
     }
 
-    #startButton {
+    #startButton,
+    #newMelodyButton {
       background: var(--navy);
     }
 
@@ -118,7 +117,7 @@
     }
 
     #playMelodyButton,
-    #playTargetButton {
+    #startingPitchButton {
       background: var(--green);
     }
 
@@ -136,10 +135,6 @@
       width: 100%;
       height: 260px;
       overflow: hidden;
-    }
-
-    .results-panel {
-      padding: 14px;
     }
 
     .results-description {
@@ -194,24 +189,15 @@
       color: var(--red);
     }
 
-    .tuner-layout {
-      display: grid;
-      grid-template-columns: minmax(220px, 1fr) 145px;
-      gap: 18px;
-      align-items: center;
-      margin-top: 8px;
-    }
-
-    .tuner-area {
-      min-width: 220px;
+    .tuner-panel {
       text-align: center;
     }
 
     .tuner {
       position: relative;
-      width: min(260px, 100%);
-      height: 132px;
-      margin: auto;
+      width: 180px;
+      height: 100px;
+      margin: 8px auto 0;
       overflow: hidden;
     }
 
@@ -219,9 +205,9 @@
       position: absolute;
       bottom: 0;
       left: 50%;
-      width: 250px;
-      height: 125px;
-      border-radius: 250px 250px 0 0;
+      width: 175px;
+      height: 88px;
+      border-radius: 175px 175px 0 0;
       background:
         conic-gradient(
           from 270deg at 50% 100%,
@@ -239,11 +225,11 @@
 
     .tuner-needle {
       position: absolute;
-      bottom: 8px;
+      bottom: 6px;
       left: 50%;
       z-index: 2;
-      width: 4px;
-      height: 102px;
+      width: 3px;
+      height: 72px;
       border-radius: 4px;
       background: var(--navy);
       transform: translateX(-50%) rotate(0deg);
@@ -255,11 +241,11 @@
 
     .tuner-center {
       position: absolute;
-      bottom: 3px;
+      bottom: 2px;
       left: 50%;
       z-index: 3;
-      width: 14px;
-      height: 14px;
+      width: 11px;
+      height: 11px;
       border-radius: 50%;
       background: var(--navy);
       transform: translateX(-50%);
@@ -268,55 +254,11 @@
     .tuner-labels {
       display: flex;
       justify-content: space-between;
-      width: min(250px, 100%);
+      width: 175px;
       margin: 3px auto 0;
       color: #555;
-      font-size: 0.75rem;
+      font-size: 0.68rem;
       font-weight: bold;
-    }
-
-    .feedback-box {
-      padding: 12px 8px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #f8fafc;
-      text-align: center;
-    }
-
-    .feedback-label {
-      display: block;
-      margin-bottom: 6px;
-      color: #555;
-      font-size: 0.75rem;
-    }
-
-    .feedback-value {
-      display: block;
-      color: var(--navy);
-      font-size: 1.25rem;
-      font-weight: bold;
-    }
-
-    .graph-explanation {
-      margin: 8px 0 4px;
-      color: #555;
-      font-size: 0.78rem;
-    }
-
-    canvas {
-      display: block;
-      width: 100%;
-      height: 150px;
-      margin-top: 6px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      background: #0d1b2a;
-    }
-
-    .help-text {
-      margin-bottom: 0;
-      color: #555;
-      font-size: 0.78rem;
     }
 
     @media (max-width: 760px) {
@@ -324,12 +266,12 @@
         grid-template-columns: 1fr;
       }
 
-      .controls-panel,
+      .left-column,
       .content-stack {
         grid-column: 1;
       }
 
-      .controls-panel {
+      .left-column {
         order: 1;
       }
 
@@ -343,15 +285,6 @@
     }
 
     @media (max-width: 560px) {
-      .tuner-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .feedback-box {
-        width: 145px;
-        margin: auto;
-      }
-
       .result-grid {
         grid-template-columns: repeat(8, minmax(22px, 1fr));
         gap: 8px 2px;
@@ -374,32 +307,46 @@
     </p>
 
     <div class="main-layout">
-      <section class="panel controls-panel">
-        <h2>Controls</h2>
+      <div class="left-column">
+        <section class="panel">
+          <h2>Controls</h2>
 
-        <div class="controls">
-          <button id="startButton">Start Microphone</button>
-          <button id="stopButton" disabled>Stop</button>
-          <button id="playMelodyButton">Play Melody</button>
-          <button id="playTargetButton">Play Target Tone</button>
-        </div>
-      </section>
+          <div class="controls">
+            <button id="startButton">Start Microphone</button>
+            <button id="stopButton" disabled>Stop</button>
+            <button id="playMelodyButton">Play Melody</button>
+            <button id="startingPitchButton">Starting Pitch</button>
+            <button id="newMelodyButton">New Melody</button>
+          </div>
+        </section>
+
+        <section class="panel tuner-panel">
+          <h2>Pitch Tuner</h2>
+
+          <div class="tuner" aria-label="Semicircular pitch tuner">
+            <div class="tuner-arc"></div>
+            <div id="tunerNeedle" class="tuner-needle" aria-hidden="true"></div>
+            <div class="tuner-center" aria-hidden="true"></div>
+          </div>
+
+          <div class="tuner-labels" aria-hidden="true">
+            <span>Flat</span>
+            <span>Centered</span>
+            <span>Sharp</span>
+          </div>
+        </section>
+      </div>
 
       <div class="content-stack">
         <section class="panel">
-          <h2>Treble Clef Sight-Reading Exercise</h2>
-
-          <p>
-            Follow the written notes from left to right.
-            The current note is highlighted during practice.
-          </p>
+          <h2>Sight-Reading Exercise</h2>
 
           <div class="notation-stage">
             <div id="notation" aria-label="Treble clef sight-reading exercise"></div>
           </div>
         </section>
 
-        <section class="panel results-panel">
+        <section class="panel">
           <h2>Pitch Results</h2>
 
           <p class="results-description">
@@ -407,41 +354,6 @@
           </p>
 
           <div id="resultGrid" class="result-grid"></div>
-        </section>
-
-        <section class="panel">
-          <h2>Pitch Feedback</h2>
-
-          <div class="tuner-layout">
-            <div class="tuner-area">
-              <div class="tuner" aria-label="Semicircular pitch tuner">
-                <div class="tuner-arc"></div>
-                <div id="tunerNeedle" class="tuner-needle" aria-hidden="true"></div>
-                <div class="tuner-center" aria-hidden="true"></div>
-              </div>
-
-              <div class="tuner-labels" aria-hidden="true">
-                <span>Flat</span>
-                <span>Centered</span>
-                <span>Sharp</span>
-              </div>
-            </div>
-
-            <div class="feedback-box">
-              <span class="feedback-label">Current Feedback</span>
-              <span id="feedback" class="feedback-value" aria-live="polite">—</span>
-            </div>
-          </div>
-
-          <p class="graph-explanation">
-            The graph shows pitch relative to the currently active written note.
-          </p>
-
-          <canvas id="pitchCanvas" aria-label="Visual pitch history"></canvas>
-
-          <p class="help-text">
-            A note is marked correct when the average pitch is within ±30 cents.
-          </p>
         </section>
       </div>
     </div>
@@ -473,7 +385,6 @@
     let melody = [];
     let noteSamples = [];
     let noteResults = [];
-    let pitchHistory = [];
 
     let running = false;
     let currentNote = 0;
@@ -491,24 +402,20 @@
     const startButton = document.getElementById("startButton");
     const stopButton = document.getElementById("stopButton");
     const playMelodyButton = document.getElementById("playMelodyButton");
-    const playTargetButton = document.getElementById("playTargetButton");
+    const startingPitchButton = document.getElementById("startingPitchButton");
+    const newMelodyButton = document.getElementById("newMelodyButton");
 
     const resultGrid = document.getElementById("resultGrid");
-    const feedbackDisplay = document.getElementById("feedback");
     const tunerNeedle = document.getElementById("tunerNeedle");
-    const canvas = document.getElementById("pitchCanvas");
-    const canvasContext = canvas.getContext("2d");
     const notationContainer = document.getElementById("notation");
 
     startButton.onclick = startPractice;
-    stopButton.onclick = () => stopPractice(true);
+    stopButton.onclick = () => stopPractice();
     playMelodyButton.onclick = playMelody;
-    playTargetButton.onclick = playTargetTone;
+    startingPitchButton.onclick = playStartingPitch;
+    newMelodyButton.onclick = createNewMelody;
 
-    window.addEventListener("resize", () => {
-      resizeCanvas();
-      renderNotation();
-    });
+    window.addEventListener("resize", renderNotation);
 
     function generateMelody() {
       melody = [];
@@ -543,10 +450,6 @@
         const box = document.createElement("div");
         box.className = "result-box";
         box.id = "result-" + i;
-        box.setAttribute(
-          "aria-label",
-          "Pitch " + (i + 1) + " not yet evaluated"
-        );
 
         const number = document.createElement("div");
         number.className = "result-number";
@@ -568,19 +471,11 @@
       if (result === "correct") {
         box.classList.add("correct");
         box.textContent = "✓";
-        box.setAttribute(
-          "aria-label",
-          "Pitch " + (index + 1) + " correct"
-        );
       }
 
       if (result === "incorrect") {
         box.classList.add("incorrect");
         box.textContent = "×";
-        box.setAttribute(
-          "aria-label",
-          "Pitch " + (index + 1) + " incorrect"
-        );
       }
     }
 
@@ -805,16 +700,14 @@
       });
     }
 
-    function playTargetTone() {
+    function playStartingPitch() {
       stopAllTones();
 
       const context = getToneContext();
       context.resume();
 
-      const note = melody[currentNote] || melody[0];
-
       playFrequency(
-        note.frequency,
+        melody[0].frequency,
         0.9,
         context.currentTime + 0.05
       );
@@ -837,22 +730,6 @@
 
     function calculateCentsDifference(detected, target) {
       return 1200 * Math.log2(detected / target);
-    }
-
-    function updatePitchFeedback(frequency, targetNote) {
-      const cents = calculateCentsDifference(
-        frequency,
-        targetNote.frequency
-      );
-
-      feedbackDisplay.textContent =
-        Math.abs(cents) <= 20
-          ? "Centered"
-          : cents < 0
-            ? "Flat"
-            : "Sharp";
-
-      updateTuner(cents);
     }
 
     function autoCorrelate(buffer, sampleRate) {
@@ -898,20 +775,14 @@
       return sampleRate / bestOffset;
     }
 
-    function addPitchSample(cents, frequency, targetNote) {
-      noteSamples.push(cents);
-
-      pitchHistory.push({
+    function addPitchSample(frequency, targetNote) {
+      const cents = calculateCentsDifference(
         frequency,
-        targetFrequency: targetNote.frequency
-      });
+        targetNote.frequency
+      );
 
-      if (pitchHistory.length > 180) {
-        pitchHistory.shift();
-      }
-
-      updatePitchFeedback(frequency, targetNote);
-      drawPitchHistory();
+      updateTuner(cents);
+      noteSamples.push(cents);
     }
 
     function finalizeCurrentNote() {
@@ -974,6 +845,37 @@
       microphoneSource.connect(analyser);
     }
 
+    function beginMicrophoneLoop() {
+      if (!analyser) return;
+
+      const buffer = new Float32Array(
+        analyser.fftSize
+      );
+
+      const analyze = () => {
+        if (!running || !analyser) return;
+
+        analyser.getFloatTimeDomainData(buffer);
+
+        const frequency = autoCorrelate(
+          buffer,
+          audioContext.sampleRate
+        );
+
+        if (frequency >= 70 && frequency <= 1000) {
+          addPitchSample(
+            frequency,
+            melody[currentNote]
+          );
+        }
+
+        animationFrameId =
+          requestAnimationFrame(analyze);
+      };
+
+      analyze();
+    }
+
     function startPractice() {
       if (running) return;
 
@@ -981,11 +883,9 @@
       currentNote = 0;
       noteSamples = [];
       noteResults = [];
-      pitchHistory = [];
 
       createResultGrid();
       renderNotation();
-      resizeCanvas();
 
       startButton.disabled = true;
       stopButton.disabled = false;
@@ -1048,60 +948,18 @@
         })
         .catch(error => {
           console.error(error);
-          stopPractice(false);
+          stopPractice();
         });
-    }
-
-    function beginMicrophoneLoop() {
-      if (!analyser) return;
-
-      const buffer = new Float32Array(
-        analyser.fftSize
-      );
-
-      const analyze = () => {
-        if (!running || !analyser) return;
-
-        analyser.getFloatTimeDomainData(buffer);
-
-        const frequency = autoCorrelate(
-          buffer,
-          audioContext.sampleRate
-        );
-
-        if (frequency >= 70 && frequency <= 1000) {
-          const targetNote = melody[currentNote];
-
-          const cents = calculateCentsDifference(
-            frequency,
-            targetNote.frequency
-          );
-
-          addPitchSample(
-            cents,
-            frequency,
-            targetNote
-          );
-        }
-
-        animationFrameId =
-          requestAnimationFrame(analyze);
-      };
-
-      analyze();
     }
 
     function finishPractice() {
       if (!running) return;
 
       finalizeCurrentNote();
-
-      stopPractice(false);
+      stopPractice();
 
       currentNote = TOTAL_NOTES;
       renderNotation();
-
-      feedbackDisplay.textContent = "Complete";
       updateTuner(0);
     }
 
@@ -1149,97 +1007,22 @@
       stopButton.disabled = true;
     }
 
-    function drawGraphLine(y, color, width) {
-      canvasContext.strokeStyle = color;
-      canvasContext.lineWidth = width;
-      canvasContext.beginPath();
-      canvasContext.moveTo(0, y);
-      canvasContext.lineTo(canvas.clientWidth, y);
-      canvasContext.stroke();
-    }
+    function createNewMelody() {
+      stopPractice();
 
-    function resizeCanvas() {
-      const ratio = window.devicePixelRatio || 1;
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
+      generateMelody();
+      currentNote = 0;
+      noteSamples = [];
+      noteResults = [];
 
-      canvas.width = Math.floor(width * ratio);
-      canvas.height = Math.floor(height * ratio);
-
-      canvasContext.setTransform(
-        ratio,
-        0,
-        0,
-        ratio,
-        0,
-        0
-      );
-
-      drawPitchHistory();
-    }
-
-    function drawPitchHistory() {
-      const width = canvas.clientWidth;
-      const height = canvas.clientHeight;
-      const center = height / 2;
-      const range = 100;
-
-      canvasContext.clearRect(0, 0, width, height);
-
-      canvasContext.fillStyle = "#0d1b2a";
-      canvasContext.fillRect(0, 0, width, height);
-
-      drawGraphLine(center, "#496450", 2);
-      drawGraphLine(height * 0.25, "#526579", 1);
-      drawGraphLine(height * 0.75, "#526579", 1);
-
-      canvasContext.fillStyle = "#ffffff";
-      canvasContext.font = "10px Arial";
-      canvasContext.fillText("+100", 8, 16);
-      canvasContext.fillText("Target", 8, center - 6);
-      canvasContext.fillText("-100", 8, height - 8);
-
-      if (!pitchHistory.length) return;
-
-      canvasContext.strokeStyle = "#82bee6";
-      canvasContext.lineWidth = 2.5;
-      canvasContext.beginPath();
-
-      pitchHistory.forEach((sample, index) => {
-        const x =
-          index /
-          Math.max(pitchHistory.length - 1, 1) *
-          width;
-
-        const cents = Math.max(
-          -range,
-          Math.min(
-            range,
-            calculateCentsDifference(
-              sample.frequency,
-              sample.targetFrequency
-            )
-          )
-        );
-
-        const y =
-          center -
-          cents / range * (height / 2);
-
-        if (index === 0) {
-          canvasContext.moveTo(x, y);
-        } else {
-          canvasContext.lineTo(x, y);
-        }
-      });
-
-      canvasContext.stroke();
+      createResultGrid();
+      renderNotation();
+      updateTuner(0);
     }
 
     generateMelody();
     createResultGrid();
     prepareNotation();
-    resizeCanvas();
   </script>
 </body>
 </html>
