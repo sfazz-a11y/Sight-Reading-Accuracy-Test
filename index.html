@@ -9,12 +9,15 @@
 
   <style>
     :root {
-      --black: #111111;
-      --gold: #d1b43c;
-      --grey: #777777;
-      --light-grey: #eeeeee;
-      --border: #bdbdbd;
+      --cyan: #52c6f4;
+      --purple: #bc48f6;
+      --black: #050509;
+      --panel: #11111b;
+      --border: #52c6f4;
       --white: #ffffff;
+      --red: #e53935;
+      --yellow: #f1d33b;
+      --green: #45c96b;
     }
 
     * {
@@ -23,8 +26,8 @@
 
     body {
       margin: 0;
-      background: var(--light-grey);
-      color: var(--black);
+      background: var(--black);
+      color: var(--white);
       font-family: Arial, sans-serif;
       line-height: 1.4;
     }
@@ -37,13 +40,14 @@
 
     h1,
     h2 {
-      color: var(--black);
+      color: var(--cyan);
       line-height: 1.15;
     }
 
     h1 {
       margin: 0 0 8px;
       font-size: 1.8rem;
+      text-shadow: 0 0 10px #52c6f488;
     }
 
     h2 {
@@ -74,10 +78,12 @@
     .panel {
       padding: 14px;
       margin-bottom: 12px;
-      background: var(--white);
-      border: 1px solid var(--border);
+      background: var(--panel);
+      border: 1px solid var(--cyan);
       border-radius: 10px;
-      box-shadow: 0 1px 4px #00000018;
+      box-shadow:
+        0 0 8px #52c6f444,
+        inset 0 0 12px #bc48f611;
     }
 
     .controls {
@@ -90,23 +96,26 @@
       width: 100%;
       min-height: 36px;
       padding: 8px 10px;
-      border: 1px solid var(--black);
+      border: 1px solid var(--cyan);
       border-radius: 7px;
-      background: var(--gold);
-      color: var(--black);
+      background: var(--cyan);
+      color: #050509;
       font-size: 0.82rem;
       font-weight: bold;
       cursor: pointer;
+      box-shadow: 0 0 8px #52c6f466;
     }
 
     button:hover {
-      background: #e0c64f;
+      background: var(--purple);
+      border-color: var(--purple);
+      box-shadow: 0 0 10px #bc48f688;
     }
 
     button:focus,
     select:focus,
     input:focus {
-      outline: 3px solid var(--gold);
+      outline: 3px solid var(--purple);
       outline-offset: 2px;
     }
 
@@ -116,9 +125,9 @@
     }
 
     #stopButton {
-      background: var(--grey);
-      color: var(--white);
-      border-color: var(--grey);
+      background: var(--purple);
+      border-color: var(--purple);
+      box-shadow: 0 0 8px #bc48f666;
     }
 
     .option-row {
@@ -127,8 +136,8 @@
       justify-content: space-between;
       gap: 8px;
       padding: 7px 0 0;
-      border-top: 1px solid var(--border);
-      color: var(--black);
+      border-top: 1px solid #ffffff44;
+      color: var(--white);
       font-size: 0.8rem;
       font-weight: bold;
     }
@@ -136,10 +145,10 @@
     .option-row select {
       min-height: 30px;
       padding: 4px 6px;
-      border: 1px solid var(--grey);
+      border: 1px solid var(--cyan);
       border-radius: 5px;
-      background: var(--white);
-      color: var(--black);
+      background: var(--black);
+      color: var(--white);
       font-size: 0.8rem;
     }
 
@@ -153,15 +162,18 @@
     .metronome-label input {
       width: 17px;
       height: 17px;
-      accent-color: var(--gold);
+      accent-color: var(--purple);
     }
 
+    /*
+      The notation area intentionally remains black and white.
+    */
     .notation-stage {
       position: relative;
       width: 100%;
       height: 270px;
       overflow: hidden;
-      border: 1px solid #777777;
+      border: 1px solid #ffffff;
       border-radius: 7px;
       background: #ffffff;
     }
@@ -170,10 +182,11 @@
       width: 100%;
       height: 260px;
       overflow: hidden;
+      background: #ffffff;
     }
 
     .results-description {
-      color: #555555;
+      color: #dddddd;
       font-size: 0.78rem;
     }
 
@@ -197,9 +210,9 @@
       justify-content: center;
       width: 28px;
       height: 28px;
-      border: 2px solid #999999;
+      border: 2px solid #888888;
       border-radius: 4px;
-      background: #ffffff;
+      background: #050509;
       color: transparent;
       font-size: 18px;
       font-weight: bold;
@@ -207,21 +220,23 @@
     }
 
     .result-number {
-      color: #555555;
+      color: #dddddd;
       font-size: 0.68rem;
       font-weight: bold;
     }
 
     .result-box.correct {
-      border-color: var(--gold);
-      background: #fff8d8;
-      color: var(--black);
+      border-color: var(--cyan);
+      background: #52c6f422;
+      color: var(--cyan);
+      box-shadow: 0 0 8px #52c6f466;
     }
 
     .result-box.incorrect {
-      border-color: var(--black);
-      background: #dddddd;
-      color: var(--black);
+      border-color: var(--purple);
+      background: #bc48f622;
+      color: var(--purple);
+      box-shadow: 0 0 8px #bc48f666;
     }
 
     .tuner-panel {
@@ -236,6 +251,10 @@
       overflow: hidden;
     }
 
+    /*
+      Hard color blocks: red, yellow, and green.
+      There are no blended transitions.
+    */
     .tuner-arc {
       position: absolute;
       bottom: 0;
@@ -246,14 +265,9 @@
       background:
         conic-gradient(
           from 270deg at 50% 100%,
-          #555555 0deg,
-          #888888 45deg,
-          #bdbdbd 65deg,
-          #d1b43c 82deg,
-          #d1b43c 98deg,
-          #bdbdbd 115deg,
-          #888888 135deg,
-          #555555 180deg
+          var(--red) 0deg 60deg,
+          var(--yellow) 60deg 120deg,
+          var(--green) 120deg 180deg
         );
       transform: translateX(-50%);
     }
@@ -266,7 +280,8 @@
       width: 3px;
       height: 72px;
       border-radius: 4px;
-      background: var(--black);
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
       transform: translateX(-50%) rotate(0deg);
       transform-origin: 50% 100%;
       transition: transform 0.1s linear;
@@ -280,7 +295,8 @@
       width: 11px;
       height: 11px;
       border-radius: 50%;
-      background: var(--black);
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
       transform: translateX(-50%);
     }
 
@@ -289,7 +305,7 @@
       justify-content: space-between;
       width: 175px;
       margin: 3px auto 0;
-      color: #555555;
+      color: #dddddd;
       font-size: 0.68rem;
       font-weight: bold;
     }
@@ -432,7 +448,11 @@
     const NOTES_PER_MEASURE = 4;
     const TOTAL_MEASURES = 8;
     const COUNT_IN_BEATS = 4;
-    const ACCURACY_MARGIN = 30;
+
+    /*
+      Accuracy margin changed from ±30 to ±50 cents.
+    */
+    const ACCURACY_MARGIN = 50;
 
     let melody = [];
     let noteSamples = [];
@@ -591,7 +611,8 @@
       const leftMargin = 20;
       const rightMargin = 20;
       const headerWidth = 105;
-      const measureStart = leftMargin + headerWidth;
+      const measureStart =
+        leftMargin + headerWidth;
 
       const measureWidth =
         (width - measureStart - rightMargin) / 4;
@@ -661,15 +682,12 @@
               stemDirection
             );
 
-            let color = "#000000";
-
-            if (index === currentNote && running) {
-              color = "#d1b43c";
-            }
-
+            /*
+              The notation remains strictly black and white.
+            */
             staveNote.setStyle({
-              fillStyle: color,
-              strokeStyle: color
+              fillStyle: "#000000",
+              strokeStyle: "#000000"
             });
 
             return staveNote;
@@ -717,6 +735,7 @@
       startTime = null
     ) {
       const context = getToneContext();
+
       const start =
         startTime || context.currentTime;
 
@@ -827,7 +846,8 @@
       const limited =
         Math.max(-100, Math.min(100, cents));
 
-      const angle = limited * 0.45;
+      const angle =
+        limited * 0.45;
 
       tunerNeedle.style.transform =
         "translateX(-50%) rotate(" +
@@ -835,9 +855,9 @@
         "deg)";
 
       tunerNeedle.style.background =
-        Math.abs(cents) <= 20
-          ? "#d1b43c"
-          : "#111111";
+        Math.abs(cents) <= 50
+          ? "#52c6f4"
+          : "#bc48f6";
     }
 
     function calculateCentsDifference(
@@ -1053,7 +1073,9 @@
         .then(() => {
           if (!running) return;
 
-          const context = getToneContext();
+          const context =
+            getToneContext();
+
           context.resume();
 
           playFrequency(
