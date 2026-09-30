@@ -509,6 +509,8 @@
     let noteTimer = null;
     let toneNodes = [];
 
+    let sharedNoteXPositions = [];
+
     const startButton = document.getElementById("startButton");
     const stopButton = document.getElementById("stopButton");
     const demoButton = document.getElementById("demoButton");
@@ -581,44 +583,44 @@
       }
     }
 
-    function positionResultBoxes(width) {
-      const leftMargin = 20;
-      const rightMargin = 20;
-      const headerWidth = 105;
-      const measureStart = leftMargin + headerWidth;
+    function getActualNoteX(note, fallbackX) {
+      if (note && typeof note.getAbsoluteX === "function") {
+        const actualX = note.getAbsoluteX();
 
-      const measureWidth =
-        (width - measureStart - rightMargin) / 4;
+        if (Number.isFinite(actualX)) {
+          return actualX;
+        }
+      }
 
+      return fallbackX;
+    }
+
+    function positionResultBoxes() {
       const boxSize = 24;
+      const boxGap = 5;
+      const staffTop = 29;
 
       for (let index = 0; index < TOTAL_NOTES; index++) {
-        const measure = Math.floor(index / NOTES_PER_MEASURE);
-        const row = Math.floor(measure / 4);
-        const column = measure % 4;
-        const noteInMeasure = index % NOTES_PER_MEASURE;
-
-        const measureX =
-          measureStart + column * measureWidth;
-
-        const noteCenterX =
-          measureX +
-          measureWidth *
-            ((noteInMeasure + 0.5) / NOTES_PER_MEASURE);
-
         const box = document.getElementById("result-" + index);
 
         if (!box) continue;
 
-        box.style.left =
-          Math.round(noteCenterX - boxSize / 2) + "px";
+        const horizontalIndex = index % 16;
+        const row = Math.floor(index / 16);
+        const x = sharedNoteXPositions[horizontalIndex];
 
-        /*
-          Staff systems begin at 29px and 164px.
-          Result boxes sit immediately above them.
-        */
+        if (!Number.isFinite(x)) continue;
+
+        box.style.left =
+          Math.round(x - boxSize / 2) + "px";
+
         box.style.top =
-          row * 135 + "px";
+          Math.round(
+            staffTop -
+            boxSize -
+            boxGap +
+            row * 135
+          ) + "px";
       }
     }
 
@@ -664,6 +666,7 @@
       if (!melody.length) return;
 
       notationContainer.innerHTML = "";
+      sharedNoteXPositions = [];
 
       const width = Math.max(notationContainer.clientWidth, 720);
 
@@ -689,11 +692,6 @@
         const column = measure % 4;
 
         const x = measureStart + column * measureWidth;
-
-        /*
-          The staff systems are now closer to the top
-          of the notation area.
-        */
         const y = 29 + row * 135;
 
         if (measure === 0) {
@@ -774,9 +772,31 @@
           .format([voice], measureWidth - 24);
 
         voice.draw(context, stave);
+
+        /*
+          Use the actual rendered x-position of the first staff
+          as the shared horizontal guide for both systems.
+        */
+        if (row === 0) {
+          notes.forEach((note, noteOffset) => {
+            const fallbackX =
+              x +
+              measureWidth *
+                ((noteOffset + 0.5) / NOTES_PER_MEASURE);
+
+            const actualX = getActualNoteX(
+              note,
+              fallbackX
+            );
+
+            sharedNoteXPositions[
+              measure * NOTES_PER_MEASURE + noteOffset
+            ] = actualX;
+          });
+        }
       }
 
-      positionResultBoxes(width);
+      positionResultBoxes();
     }
 
     function getToneContext() {
