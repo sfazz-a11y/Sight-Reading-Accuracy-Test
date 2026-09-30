@@ -613,8 +613,12 @@
         box.style.left =
           Math.round(noteCenterX - boxSize / 2) + "px";
 
+        /*
+          Staff systems begin at 29px and 164px.
+          Result boxes sit immediately above them.
+        */
         box.style.top =
-          29 + row * 135 + "px";
+          row * 135 + "px";
       }
     }
 
@@ -685,7 +689,12 @@
         const column = measure % 4;
 
         const x = measureStart + column * measureWidth;
-        const y = 58 + row * 135;
+
+        /*
+          The staff systems are now closer to the top
+          of the notation area.
+        */
+        const y = 29 + row * 135;
 
         if (measure === 0) {
           const headerStave = new VF.Stave(
@@ -724,10 +733,6 @@
           const index =
             measure * NOTES_PER_MEASURE + noteOffset;
 
-          /*
-            B4 and all higher notes use downward stems.
-            Notes below B4 use upward stems.
-          */
           const stemDirection =
             ["b/4", "c/5", "d/5", "e/5"].includes(note.key)
               ? VF.Stem.DOWN
